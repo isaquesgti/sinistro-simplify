@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import InsurerDashboard from "./pages/InsurerDashboard";
 import ClaimDetails from "./pages/ClaimDetails";
+import InsurerClaimDetails from "./pages/InsurerClaimDetails";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { ProtectedRoute } from "./components/AccessControl";
@@ -34,6 +35,11 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/claim/:id" element={<ClaimDetails />} />
+          <Route path="/insurer/claim/:id" element={
+            <ProtectedRoute allowedRole="insurer" redirectTo="/dashboard">
+              <InsurerClaimDetails />
+            </ProtectedRoute>
+          } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

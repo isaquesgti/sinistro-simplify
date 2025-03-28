@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import { 
   FileCheck, 
   Search, 
@@ -13,7 +14,8 @@ import {
   AlertCircle,
   User,
   UserCog,
-  LogOut
+  LogOut,
+  Eye
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -21,6 +23,24 @@ import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth, type UserRole } from '@/components/AccessControl';
+import { 
+  ChartContainer, 
+  ChartTooltip, 
+  ChartTooltipContent 
+} from '@/components/ui/chart';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
 
 // Mock data
 const mockClaims = [
@@ -58,6 +78,21 @@ const mockClaims = [
   }
 ];
 
+// Generate chart data
+const generateChartData = (claims) => {
+  const statusCounts = claims.reduce((acc, claim) => {
+    acc[claim.status] = (acc[claim.status] || 0) + 1;
+    return acc;
+  }, {});
+
+  return [
+    { name: 'Pendentes', value: statusCounts.pending || 0, color: '#EAB308' },
+    { name: 'Em Análise', value: statusCounts.in_progress || 0, color: '#3B82F6' },
+    { name: 'Concluídos', value: statusCounts.completed || 0, color: '#22C55E' },
+    { name: 'Negados', value: statusCounts.rejected || 0, color: '#EF4444' }
+  ];
+};
+
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'pending':
@@ -84,6 +119,8 @@ const InsurerDashboard = () => {
     claim.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
     claim.clientName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const chartData = generateChartData(claims);
 
   const updateClaimStatus = (id: string, newStatus: 'pending' | 'in_progress' | 'completed' | 'rejected') => {
     setClaims(prevClaims => 
@@ -206,6 +243,17 @@ const InsurerDashboard = () => {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
+                                className="h-8 px-2 text-gray-600 border-gray-200 hover:bg-gray-50"
+                                asChild
+                              >
+                                <Link to={`/insurer/claim/${claim.id}`}>
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  Detalhes
+                                </Link>
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
                                 className="h-8 px-2 text-blue-600 border-blue-200 hover:bg-blue-50"
                                 onClick={() => updateClaimStatus(claim.id, 'in_progress')}
                               >
@@ -279,6 +327,17 @@ const InsurerDashboard = () => {
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
+                                  className="h-8 px-2 text-gray-600 border-gray-200 hover:bg-gray-50"
+                                  asChild
+                                >
+                                  <Link to={`/insurer/claim/${claim.id}`}>
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    Detalhes
+                                  </Link>
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
                                   className="h-8 px-2 text-blue-600 border-blue-200 hover:bg-blue-50"
                                   onClick={() => updateClaimStatus(claim.id, 'in_progress')}
                                 >
@@ -322,6 +381,56 @@ const InsurerDashboard = () => {
 
               {/* Similar content for the other tabs (in_progress, completed, rejected) */}
             </Tabs>
+          </div>
+
+          {/* Chart Section */}
+          <div className="bg-white shadow-sm rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-insurance-primary mb-6">
+              Análise de Sinistros por Status
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={chartData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" name="Quantidade" fill="#3B82F6">
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={true}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value, name) => [`${value} sinistros`, name]} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
         </div>
       </main>
