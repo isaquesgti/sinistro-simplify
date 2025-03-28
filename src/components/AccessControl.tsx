@@ -2,7 +2,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-type UserRole = 'client' | 'insurer' | null;
+type UserRole = 'client' | 'insurer' | 'admin' | null;
 
 // Mock authentication for now
 const useAuth = () => {

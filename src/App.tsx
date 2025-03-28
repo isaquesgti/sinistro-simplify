@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import InsurerDashboard from "./pages/InsurerDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import ClaimDetails from "./pages/ClaimDetails";
 import InsurerClaimDetails from "./pages/InsurerClaimDetails";
 import NotFound from "./pages/NotFound";
@@ -32,6 +33,11 @@ const App = () => (
           <Route path="/insurer" element={
             <ProtectedRoute allowedRole="insurer" redirectTo="/dashboard">
               <InsurerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRole="admin" redirectTo="/dashboard">
+              <AdminDashboard />
             </ProtectedRoute>
           } />
           <Route path="/claim/:id" element={<ClaimDetails />} />
