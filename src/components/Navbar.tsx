@@ -1,11 +1,13 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, User, FileCheck, Home } from 'lucide-react';
+import { Menu, X, User, FileCheck, Home, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from './AccessControl';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const auth = useAuth();
 
   return (
     <nav className="bg-white shadow-sm py-3 px-4 sm:px-6 md:px-8">
@@ -27,11 +29,29 @@ const Navbar = () => {
             <Link to="/contact" className="text-gray-700 hover:text-insurance-secondary story-link font-medium">
               Contato
             </Link>
-            <Link to="/dashboard">
-              <Button className="bg-insurance-primary hover:bg-insurance-dark text-white">
-                Área do Cliente
-              </Button>
-            </Link>
+            
+            {auth.isAuthenticated ? (
+              auth.role === 'client' ? (
+                <Link to="/dashboard">
+                  <Button className="bg-insurance-primary hover:bg-insurance-dark text-white">
+                    Área do Cliente
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/insurer">
+                  <Button className="bg-insurance-primary hover:bg-insurance-dark text-white">
+                    Área da Seguradora
+                  </Button>
+                </Link>
+              )
+            ) : (
+              <Link to="/login">
+                <Button className="bg-insurance-primary hover:bg-insurance-dark text-white">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Entrar
+                </Button>
+              </Link>
+            )}
           </div>
           
           {/* Mobile menu button */}
@@ -71,13 +91,37 @@ const Navbar = () => {
               >
                 Contato
               </Link>
-              <Link 
-                to="/dashboard" 
-                className="bg-insurance-primary text-white px-4 py-2 rounded-md text-base font-medium inline-block text-center"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Área do Cliente
-              </Link>
+              
+              {auth.isAuthenticated ? (
+                auth.role === 'client' ? (
+                  <Link 
+                    to="/dashboard" 
+                    className="bg-insurance-primary text-white px-4 py-2 rounded-md text-base font-medium inline-block text-center"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Área do Cliente
+                  </Link>
+                ) : (
+                  <Link 
+                    to="/insurer" 
+                    className="bg-insurance-primary text-white px-4 py-2 rounded-md text-base font-medium inline-block text-center"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Área da Seguradora
+                  </Link>
+                )
+              ) : (
+                <Link 
+                  to="/login" 
+                  className="bg-insurance-primary text-white px-4 py-2 rounded-md text-base font-medium inline-block text-center"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span className="flex items-center justify-center">
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Entrar
+                  </span>
+                </Link>
+              )}
             </div>
           </div>
         )}

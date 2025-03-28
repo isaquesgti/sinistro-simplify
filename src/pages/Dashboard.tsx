@@ -12,11 +12,14 @@ import {
   Bell, 
   User,
   FileText,
-  Clock 
+  Clock,
+  Shield, 
+  LogOut 
 } from 'lucide-react';
 import ClaimCard from '@/components/ClaimCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { useAuth, type UserRole } from '@/components/AccessControl';
 
 // Mock data
 const mockClaims = [
@@ -56,6 +59,7 @@ const mockClaims = [
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const auth = useAuth();
   
   const filteredClaims = mockClaims.filter(claim => 
     claim.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -77,13 +81,21 @@ const Dashboard = () => {
               </p>
             </div>
             <div className="flex space-x-2 mt-4 md:mt-0">
-              <Button className="bg-insurance-secondary hover:bg-insurance-accent">
-                <Bell className="w-4 h-4 mr-2" />
-                Notificações
+              <Button 
+                variant="outline" 
+                className="border-insurance-primary text-insurance-primary hover:bg-insurance-primary/5"
+                onClick={() => auth.login('insurer' as UserRole)}
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Ver como Seguradora
               </Button>
-              <Button variant="outline" className="border-insurance-primary text-insurance-primary hover:bg-insurance-primary/5">
-                <User className="w-4 h-4 mr-2" />
-                Meu Perfil
+              <Button 
+                variant="outline" 
+                className="border-red-500 text-red-500 hover:bg-red-500/5"
+                onClick={() => auth.logout()}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
               </Button>
             </div>
           </div>
