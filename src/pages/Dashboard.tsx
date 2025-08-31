@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,112 +14,54 @@ import {
   FileText,
   Clock,
   Shield, 
-  LogOut,
-  Trash2
+  LogOut 
 } from 'lucide-react';
 import ClaimCard from '@/components/ClaimCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth, type UserRole } from '@/components/AccessControl';
-import { createClient } from '@supabase/supabase-js';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 
-// Inicializa o cliente Supabase com as variáveis de ambiente
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-interface Claim {
-  id: string;
-  title: string;
-  date: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'rejected';
-  description: string;
-  unreadMessages: number;
-}
+// Mock data
+const mockClaims = [
+  {
+    id: "SIN-2023-0001",
+    title: "Sinistro Automóvel - Colisão",
+    date: "15/05/2023",
+    status: "in_progress" as const,
+    description: "Colisão traseira na Av. Paulista, envolvendo dois veículos. Danos moderados no para-choque e porta traseira.",
+    unreadMessages: 2
+  },
+  {
+    id: "SIN-2023-0002",
+    title: "Sinistro Residencial - Alagamento",
+    date: "03/06/2023",
+    status: "completed" as const,
+    description: "Alagamento no apartamento devido a um vazamento no encanamento do vizinho de cima. Danos em móveis e no piso.",
+    unreadMessages: 0
+  },
+  {
+    id: "SIN-2023-0003",
+    title: "Sinistro Saúde - Cirurgia",
+    date: "22/07/2023",
+    status: "pending" as const,
+    description: "Solicitação de reembolso para cirurgia de emergência realizada no Hospital São Luiz.",
+    unreadMessages: 5
+  },
+  {
+    id: "SIN-2023-0004",
+    title: "Sinistro Automóvel - Furto",
+    date: "10/08/2023",
+    status: "rejected" as const,
+    description: "Furto de veículo no estacionamento do Shopping Morumbi. O veículo não foi recuperado.",
+    unreadMessages: 1
+  }
+];
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [claims, setClaims] = useState<Claim[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newClaimTitle, setNewClaimTitle] = useState('');
-  const [newClaimDescription, setNewClaimDescription] = useState('');
   const auth = useAuth();
   
-  // Função para buscar os sinistros no Supabase
-  const fetchClaims = async () => {
-    // Busca todos os registros na tabela 'claims'
-    const { data, error } = await supabase.from('claims').select('*');
-    if (error) {
-      console.error('Erro ao buscar sinistros:', error.message);
-      return;
-    }
-    setClaims(data as Claim[]);
-  };
-
-  // Função para adicionar um novo sinistro no Supabase
-  const handleAddClaim = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const newClaim = {
-      title: newClaimTitle,
-      description: newClaimDescription,
-      date: new Date().toLocaleDateString('pt-BR'),
-      status: 'pending',
-      unreadMessages: 0,
-      id: crypto.randomUUID(), // Gera um ID único para o novo sinistro
-    };
-
-    // Insere o novo registro na tabela 'claims'
-    const { error } = await supabase.from('claims').insert([newClaim]);
-
-    if (error) {
-      console.error('Erro ao adicionar sinistro:', error.message);
-      return;
-    }
-
-    // Fecha o modal e limpa o formulário
-    setIsModalOpen(false);
-    setNewClaimTitle('');
-    setNewClaimDescription('');
-
-    // Atualiza a lista de sinistros
-    fetchClaims();
-  };
-
-  // Função para deletar um sinistro do Supabase
-  const handleDeleteClaim = async (claimId: string) => {
-    // Confirmação para evitar exclusões acidentais
-    if (window.confirm('Tem certeza que deseja deletar este sinistro?')) {
-      const { error } = await supabase
-        .from('claims')
-        .delete()
-        .eq('id', claimId); // Deleta o registro com o ID correspondente
-      
-      if (error) {
-        console.error('Erro ao deletar sinistro:', error.message);
-        return;
-      }
-      
-      // Atualiza a lista de sinistros após a exclusão
-      fetchClaims();
-    }
-  };
-
-  // Carrega os dados do Supabase quando o componente é montado
-  useEffect(() => {
-    fetchClaims();
-  }, []);
-
-  const filteredClaims = claims.filter(claim => 
+  const filteredClaims = mockClaims.filter(claim => 
     claim.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     claim.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -163,10 +106,7 @@ const Dashboard = () => {
                 <FileCheck className="w-5 h-5 mr-2 text-insurance-secondary" />
                 Meus Sinistros
               </h2>
-              <Button 
-                className="mt-4 md:mt-0 bg-insurance-primary hover:bg-insurance-dark flex items-center"
-                onClick={() => setIsModalOpen(true)}
-              >
+              <Button className="mt-4 md:mt-0 bg-insurance-primary hover:bg-insurance-dark flex items-center">
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Sinistro
               </Button>
@@ -201,17 +141,7 @@ const Dashboard = () => {
                 <div className="grid md:grid-cols-2 gap-6">
                   {filteredClaims.length > 0 ? (
                     filteredClaims.map(claim => (
-                      <div key={claim.id} className="flex items-center gap-4">
-                        <ClaimCard {...claim} />
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="hover:bg-red-500/10 text-red-500"
-                          onClick={() => handleDeleteClaim(claim.id)}
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </Button>
-                      </div>
+                      <ClaimCard key={claim.id} {...claim} />
                     ))
                   ) : (
                     <div className="col-span-2 text-center py-8">
@@ -232,17 +162,7 @@ const Dashboard = () => {
                     filteredClaims
                       .filter(claim => claim.status === 'pending')
                       .map(claim => (
-                        <div key={claim.id} className="flex items-center gap-4">
-                          <ClaimCard {...claim} />
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="hover:bg-red-500/10 text-red-500"
-                            onClick={() => handleDeleteClaim(claim.id)}
-                          >
-                            <Trash2 className="h-5 w-5" />
-                          </Button>
-                        </div>
+                        <ClaimCard key={claim.id} {...claim} />
                       ))
                   ) : (
                     <div className="col-span-2 text-center py-8">
@@ -259,17 +179,7 @@ const Dashboard = () => {
                   {filteredClaims
                     .filter(claim => claim.status === 'in_progress')
                     .map(claim => (
-                      <div key={claim.id} className="flex items-center gap-4">
-                        <ClaimCard {...claim} />
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="hover:bg-red-500/10 text-red-500"
-                          onClick={() => handleDeleteClaim(claim.id)}
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </Button>
-                      </div>
+                      <ClaimCard key={claim.id} {...claim} />
                     ))}
                 </div>
               </TabsContent>
@@ -279,17 +189,7 @@ const Dashboard = () => {
                   {filteredClaims
                     .filter(claim => claim.status === 'completed')
                     .map(claim => (
-                      <div key={claim.id} className="flex items-center gap-4">
-                        <ClaimCard {...claim} />
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="hover:bg-red-500/10 text-red-500"
-                          onClick={() => handleDeleteClaim(claim.id)}
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </Button>
-                      </div>
+                      <ClaimCard key={claim.id} {...claim} />
                     ))}
                 </div>
               </TabsContent>
@@ -315,45 +215,6 @@ const Dashboard = () => {
         </div>
       </main>
       <Footer />
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Novo Sinistro</DialogTitle>
-            <DialogDescription>
-              Preencha os campos para abrir um novo sinistro.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleAddClaim} className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="title" className="text-right">
-                Título
-              </Label>
-              <Input
-                id="title"
-                value={newClaimTitle}
-                onChange={(e) => setNewClaimTitle(e.target.value)}
-                className="col-span-3"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Descrição
-              </Label>
-              <Textarea
-                id="description"
-                value={newClaimDescription}
-                onChange={(e) => setNewClaimDescription(e.target.value)}
-                className="col-span-3"
-                required
-              />
-            </div>
-            <DialogFooter className="pt-4">
-              <Button type="submit">Adicionar Sinistro</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
