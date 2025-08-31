@@ -13,7 +13,8 @@ import {
   FileText,
   Clock,
   Shield, 
-  LogOut 
+  LogOut,
+  Trash2
 } from 'lucide-react';
 import ClaimCard from '@/components/ClaimCard';
 import Navbar from '@/components/Navbar';
@@ -91,6 +92,25 @@ const Dashboard = () => {
 
     // Atualiza a lista de sinistros
     fetchClaims();
+  };
+
+  // Função para deletar um sinistro do Supabase
+  const handleDeleteClaim = async (claimId: string) => {
+    // Confirmação para evitar exclusões acidentais
+    if (window.confirm('Tem certeza que deseja deletar este sinistro?')) {
+      const { error } = await supabase
+        .from('claims')
+        .delete()
+        .eq('id', claimId); // Deleta o registro com o ID correspondente
+      
+      if (error) {
+        console.error('Erro ao deletar sinistro:', error.message);
+        return;
+      }
+      
+      // Atualiza a lista de sinistros após a exclusão
+      fetchClaims();
+    }
   };
 
   // Carrega os dados do Supabase quando o componente é montado
@@ -181,7 +201,17 @@ const Dashboard = () => {
                 <div className="grid md:grid-cols-2 gap-6">
                   {filteredClaims.length > 0 ? (
                     filteredClaims.map(claim => (
-                      <ClaimCard key={claim.id} {...claim} />
+                      <div key={claim.id} className="flex items-center gap-4">
+                        <ClaimCard {...claim} />
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="hover:bg-red-500/10 text-red-500"
+                          onClick={() => handleDeleteClaim(claim.id)}
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </Button>
+                      </div>
                     ))
                   ) : (
                     <div className="col-span-2 text-center py-8">
@@ -202,7 +232,17 @@ const Dashboard = () => {
                     filteredClaims
                       .filter(claim => claim.status === 'pending')
                       .map(claim => (
-                        <ClaimCard key={claim.id} {...claim} />
+                        <div key={claim.id} className="flex items-center gap-4">
+                          <ClaimCard {...claim} />
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="hover:bg-red-500/10 text-red-500"
+                            onClick={() => handleDeleteClaim(claim.id)}
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </Button>
+                        </div>
                       ))
                   ) : (
                     <div className="col-span-2 text-center py-8">
@@ -219,7 +259,17 @@ const Dashboard = () => {
                   {filteredClaims
                     .filter(claim => claim.status === 'in_progress')
                     .map(claim => (
-                      <ClaimCard key={claim.id} {...claim} />
+                      <div key={claim.id} className="flex items-center gap-4">
+                        <ClaimCard {...claim} />
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="hover:bg-red-500/10 text-red-500"
+                          onClick={() => handleDeleteClaim(claim.id)}
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </Button>
+                      </div>
                     ))}
                 </div>
               </TabsContent>
@@ -229,7 +279,17 @@ const Dashboard = () => {
                   {filteredClaims
                     .filter(claim => claim.status === 'completed')
                     .map(claim => (
-                      <ClaimCard key={claim.id} {...claim} />
+                      <div key={claim.id} className="flex items-center gap-4">
+                        <ClaimCard {...claim} />
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="hover:bg-red-500/10 text-red-500"
+                          onClick={() => handleDeleteClaim(claim.id)}
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </Button>
+                      </div>
                     ))}
                 </div>
               </TabsContent>
