@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -22,7 +21,8 @@ const Hero = () => {
                   Acessar plataforma
                 </Button>
               </Link>
-              <Link to="/contact">
+              {/* Adicionado o link para a página de contato */}
+              <Link to="/contatos">
                 <Button variant="outline" className="border-insurance-primary text-insurance-primary hover:bg-insurance-primary/10 px-6 py-3 font-medium text-base w-full sm:w-auto">
                   Fale conosco
                 </Button>
