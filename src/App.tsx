@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,8 @@ import ClaimDetails from "./pages/ClaimDetails";
 import InsurerClaimDetails from "./pages/InsurerClaimDetails";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
+import Sobre from "./pages/Sobre"; 
+import Contatos from "./pages/Contatos"; 
 import { ProtectedRoute } from "./components/AccessControl";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,10 @@ const App = () => (
               <InsurerClaimDetails />
             </ProtectedRoute>
           } />
+          {/* Rotas para as novas páginas "Sobre" e "Contatos" */}
+          <Route path="/sobre" element={<Sobre />} />
+          <Route path="/contatos" element={<Contatos />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
