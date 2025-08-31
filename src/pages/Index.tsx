@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { Link } from 'react-router-dom'; // Importe o Link
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import Features from '@/components/Features';
@@ -20,12 +20,12 @@ const Index = () => {
             Junte-se a milhares de usuários que já estão utilizando nossa plataforma para 
             agilizar processos e melhorar a experiência com sinistros.
           </p>
-          <a 
-            href="/dashboard" 
+          <Link // Use a tag <Link> do React Router
+            to="/login" // Altere o destino para a página de login
             className="inline-block bg-insurance-primary hover:bg-insurance-dark text-white py-3 px-8 rounded-md font-medium transition-colors"
           >
             Experimente agora
-          </a>
+          </Link>
         </div>
       </section>
       <Footer />
