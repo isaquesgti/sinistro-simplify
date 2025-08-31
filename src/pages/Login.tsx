@@ -1,189 +1,53 @@
-
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth, type UserRole } from '@/components/AccessControl';
-import { User, Shield, Key } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { toast } from '@/hooks/use-toast';
+// src/components/Login.tsx
+// ... (imports)
+import { supabase } from '@/lib/supabaseClient'; // Importe o cliente Supabase
 
 const Login = () => {
-  const navigate = useNavigate();
-  const auth = useAuth();
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<UserRole>('client');
+  // ... (existing state and other code)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-      // Mock login for demo purposes - would be replaced with actual authentication
-      if (identifier && password) {
-        if (identifier === 'admin@sistema.com' && password === 'admin123') {
-          auth.login('admin');
-          navigate('/admin');
-        } else if (selectedTab === 'insurer') {
-          auth.login('insurer');
-          navigate('/insurer');
-        } else {
-          auth.login('client');
-          navigate('/dashboard');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: identifier,
+        password: password,
+      });
+
+      if (error) {
+        throw error;
+      }
+      
+      // O Supabase lida com o token e a sessão automaticamente
+      // A função auth.login() no AccessControl será substituída por uma que verifica o usuário logado
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Obter o role do usuário do banco de dados para redirecionar corretamente
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (userData) {
+          auth.login(userData.role); // Chame a função de login com o role real
+          navigate('/dashboard'); // Ou redirecione com base no role
         }
-      } else {
-        toast({
-          title: "Erro de login",
-          description: "Por favor, preencha todos os campos.",
-          variant: "destructive",
-        });
       }
     } catch (error) {
       toast({
-        title: "Erro de login",
-        description: "Credenciais inválidas. Tente novamente.",
+        title: "Erro ao fazer login",
+        description: error.message || "Credenciais inválidas. Tente novamente.",
         variant: "destructive",
       });
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleForgotPassword = () => {
-    if (!identifier) {
-      toast({
-        title: "Campo obrigatório",
-        description: "Digite seu email ou CPF/CNPJ para recuperar a senha.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    toast({
-      title: "Email enviado",
-      description: "Instruções para redefinir sua senha foram enviadas para o seu email.",
-    });
-  };
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow flex items-center justify-center bg-gray-50 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-insurance-primary">Acesso ao Sistema</CardTitle>
-            <CardDescription>
-              Faça login para acessar sua conta
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="client" onValueChange={(value) => setSelectedTab(value as UserRole)} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="client" className="flex items-center justify-center gap-2">
-                  <User className="h-4 w-4" />
-                  Cliente
-                </TabsTrigger>
-                <TabsTrigger value="insurer" className="flex items-center justify-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  Seguradora
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="client">
-                <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="client-identifier">CPF ou Email</Label>
-                    <Input 
-                      id="client-identifier" 
-                      type="text" 
-                      placeholder="Digite seu CPF ou email"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <Label htmlFor="client-password">Senha</Label>
-                      <Button 
-                        type="button" 
-                        variant="link" 
-                        size="sm" 
-                        className="px-0 h-auto font-normal text-xs"
-                        onClick={handleForgotPassword}
-                      >
-                        Esqueci a senha
-                      </Button>
-                    </div>
-                    <Input 
-                      id="client-password" 
-                      type="password" 
-                      placeholder="Digite sua senha"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Processando...' : 'Entrar'}
-                  </Button>
-                </form>
-              </TabsContent>
-              
-              <TabsContent value="insurer">
-                <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="insurer-identifier">CNPJ ou Email</Label>
-                    <Input 
-                      id="insurer-identifier" 
-                      type="text" 
-                      placeholder="Digite o CNPJ ou email"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <Label htmlFor="insurer-password">Senha</Label>
-                      <Button 
-                        type="button" 
-                        variant="link" 
-                        size="sm" 
-                        className="px-0 h-auto font-normal text-xs"
-                        onClick={handleForgotPassword}
-                      >
-                        Esqueci a senha
-                      </Button>
-                    </div>
-                    <Input 
-                      id="insurer-password" 
-                      type="password" 
-                      placeholder="Digite sua senha"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Processando...' : 'Entrar'}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <p className="text-sm text-gray-500">
-              Para dúvidas, entre em contato com o suporte
-            </p>
-          </CardFooter>
-        </Card>
-      </main>
-      <Footer />
-    </div>
-  );
+  // ... (rest of the component)
 };
 
 export default Login;
