@@ -12,7 +12,7 @@ import InsurerClaimDetails from "./pages/InsurerClaimDetails";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Sobre from "./pages/sobre";
-import Contatos from "./pages/Contatos";
+import Contatos from "./pages/contatos";
 import { ProtectedRoute } from "./components/AccessControl";
 import { Home, Info, Phone } from "lucide-react";
 
