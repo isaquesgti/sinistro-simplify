@@ -15,19 +15,7 @@ const Hero = () => {
             <p className="text-lg text-gray-700 mb-8">
               Conectamos seguradoras e clientes em uma plataforma única, agilizando todo o fluxo de atendimento e resolução de sinistros.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/dashboard">
-                <Button className="bg-insurance-primary hover:bg-insurance-dark text-white px-6 py-3 font-medium text-base w-full sm:w-auto">
-                  Acessar plataforma
-                </Button>
-              </Link>
-              {/* Adicionado o link para a página de contato */}
-              <Link to="/contatos">
-                <Button variant="outline" className="border-insurance-primary text-insurance-primary hover:bg-insurance-primary/10 px-6 py-3 font-medium text-base w-full sm:w-auto">
-                  Fale conosco
-                </Button>
-              </Link>
-            </div>
+            {/* O bloco de botões foi removido */}
           </div>
           <div className="lg:w-1/2 relative">
             <div className="bg-white rounded-xl shadow-xl p-6 md:p-8 animate-fade-in">
