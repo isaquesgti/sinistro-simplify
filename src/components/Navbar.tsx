@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, User, FileCheck, Home, LogIn } from 'lucide-react';
@@ -23,10 +22,12 @@ const Navbar = () => {
             <Link to="/" className="text-gray-700 hover:text-insurance-secondary story-link font-medium">
               Início
             </Link>
-            <Link to="/about" className="text-gray-700 hover:text-insurance-secondary story-link font-medium">
+            {/* Link para a página Sobre */}
+            <Link to="/sobre" className="text-gray-700 hover:text-insurance-secondary story-link font-medium">
               Sobre
             </Link>
-            <Link to="/contact" className="text-gray-700 hover:text-insurance-secondary story-link font-medium">
+            {/* Link para a página Contato */}
+            <Link to="/contatos" className="text-gray-700 hover:text-insurance-secondary story-link font-medium">
               Contato
             </Link>
             
@@ -78,14 +79,14 @@ const Navbar = () => {
                 Início
               </Link>
               <Link 
-                to="/about" 
+                to="/sobre" 
                 className="text-gray-700 hover:text-insurance-secondary px-3 py-2 rounded-md text-base font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Sobre
               </Link>
               <Link 
-                to="/contact" 
+                to="/contatos" 
                 className="text-gray-700 hover:text-insurance-secondary px-3 py-2 rounded-md text-base font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
