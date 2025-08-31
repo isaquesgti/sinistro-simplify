@@ -42,17 +42,14 @@ const Footer = () => {
                 <Link to="/" className="text-gray-300 hover:text-insurance-secondary transition">Início</Link>
               </li>
               <li>
-                <Link to="/sobre" className="text-gray-300 hover:text-insurance-secondary transition">Sobre nós</Link>
+                <Link to="/sobre" className="text-gray-300 hover:text-insurance-secondary transition">Sobre</Link>
               </li>
-              <li>
+              /* <li>
                 <Link to="/contatos" className="text-gray-300 hover:text-insurance-secondary transition">Contato</Link>
-              </li>
-              <li>
-                <Link to="/dashboard" className="text-gray-300 hover:text-insurance-secondary transition">Área do Cliente</Link>
-              </li>
+              </li> */
               {/* Novo link para a página de login */}
               <li>
-                <Link to="/login" className="text-gray-300 hover:text-insurance-secondary transition">Login</Link>
+                <Link to="/login" className="text-gray-300 hover:text-insurance-secondary transition">Fazer Login</Link>
               </li>
             </ul>
           </div>
@@ -110,3 +107,4 @@ const Footer = () => {
 };
 
 export default Footer;
+
