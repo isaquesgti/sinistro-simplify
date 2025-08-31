@@ -2,26 +2,25 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { 
-  FileCheck, 
-  Plus, 
-  Search, 
-  Filter, 
-  MessageSquare, 
-  Bell, 
+import { 
+  FileCheck, 
+  Plus, 
+  Search, 
+  Filter, 
+  MessageSquare, 
+  Bell, 
   User,
   FileText,
   Clock,
-  Shield, 
-  LogOut 
+  Shield, 
+  LogOut,
+  XCircle,
+  Clock as ClockIcon,
 } from 'lucide-react';
 import ClaimCard from '@/components/ClaimCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth, type UserRole } from '@/components/AccessControl';
-
-// Esta é a versão com dados estáticos para garantir que a página seja visualizada corretamente.
-// Para usar o Supabase, as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY devem ser configuradas.
 
 // Mock data
 const mockClaims = [
@@ -66,6 +65,19 @@ const Dashboard = () => {
   const filteredClaims = mockClaims.filter(claim => 
     claim.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     claim.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const renderNoClaimsMessage = (icon: React.ReactNode, title: string, message: string) => (
+    <div className="col-span-2 text-center py-8">
+      {icon}
+      <h3 className="text-lg font-medium text-gray-700 mb-2">{title}</h3>
+      <p className="text-gray-500 mb-4">{message}</p>
+      {searchTerm && (
+        <Button onClick={() => setSearchTerm('')} variant="outline">
+          Limpar busca
+        </Button>
+      )}
+    </div>
   );
 
   return (
@@ -137,6 +149,7 @@ const Dashboard = () => {
                 <TabsTrigger value="pending">Pendentes</TabsTrigger>
                 <TabsTrigger value="in_progress">Em Análise</TabsTrigger>
                 <TabsTrigger value="completed">Concluídos</TabsTrigger>
+                <TabsTrigger value="rejected">Rejeitados</TabsTrigger>
               </TabsList>
               
               <TabsContent value="all" className="mt-0">
@@ -146,14 +159,11 @@ const Dashboard = () => {
                       <ClaimCard key={claim.id} {...claim} />
                     ))
                   ) : (
-                    <div className="col-span-2 text-center py-8">
-                      <FileText className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-700 mb-2">Nenhum sinistro encontrado</h3>
-                      <p className="text-gray-500 mb-4">Não encontramos sinistros correspondentes à sua busca.</p>
-                      <Button onClick={() => setSearchTerm('')} variant="outline">
-                        Limpar filtros
-                      </Button>
-                    </div>
+                    renderNoClaimsMessage(
+                      <FileText className="w-16 h-16 mx-auto text-gray-300 mb-4" />,
+                      "Nenhum sinistro encontrado",
+                      "Não encontramos sinistros correspondentes à sua busca."
+                    )
                   )}
                 </div>
               </TabsContent>
@@ -167,32 +177,66 @@ const Dashboard = () => {
                         <ClaimCard key={claim.id} {...claim} />
                       ))
                   ) : (
-                    <div className="col-span-2 text-center py-8">
-                      <Clock className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-700 mb-2">Nenhum sinistro pendente</h3>
-                      <p className="text-gray-500">Você não possui sinistros pendentes no momento.</p>
-                    </div>
+                    renderNoClaimsMessage(
+                      <ClockIcon className="w-16 h-16 mx-auto text-gray-300 mb-4" />,
+                      "Nenhum sinistro pendente",
+                      "Você não possui sinistros pendentes no momento."
+                    )
                   )}
                 </div>
               </TabsContent>
               
               <TabsContent value="in_progress" className="mt-0">
                 <div className="grid md:grid-cols-2 gap-6">
-                  {filteredClaims
-                    .filter(claim => claim.status === 'in_progress')
-                    .map(claim => (
-                      <ClaimCard key={claim.id} {...claim} />
-                    ))}
+                  {filteredClaims.filter(claim => claim.status === 'in_progress').length > 0 ? (
+                    filteredClaims
+                      .filter(claim => claim.status === 'in_progress')
+                      .map(claim => (
+                        <ClaimCard key={claim.id} {...claim} />
+                      ))
+                  ) : (
+                    renderNoClaimsMessage(
+                      <ClockIcon className="w-16 h-16 mx-auto text-gray-300 mb-4" />,
+                      "Nenhum sinistro em análise",
+                      "Não há sinistros em análise no momento."
+                    )
+                  )}
                 </div>
               </TabsContent>
               
               <TabsContent value="completed" className="mt-0">
                 <div className="grid md:grid-cols-2 gap-6">
-                  {filteredClaims
-                    .filter(claim => claim.status === 'completed')
-                    .map(claim => (
-                      <ClaimCard key={claim.id} {...claim} />
-                    ))}
+                  {filteredClaims.filter(claim => claim.status === 'completed').length > 0 ? (
+                    filteredClaims
+                      .filter(claim => claim.status === 'completed')
+                      .map(claim => (
+                        <ClaimCard key={claim.id} {...claim} />
+                      ))
+                  ) : (
+                    renderNoClaimsMessage(
+                      <FileCheck className="w-16 h-16 mx-auto text-gray-300 mb-4" />,
+                      "Nenhum sinistro concluído",
+                      "Não há sinistros concluídos para exibir."
+                    )
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="rejected" className="mt-0">
+                <div className="grid md:grid-cols-2 gap-6">
+                  {filteredClaims.filter(claim => claim.status === 'rejected').length > 0 ? (
+                    filteredClaims
+                      .filter(claim => claim.status === 'rejected')
+                      .map(claim => (
+                        <ClaimCard key={claim.id} {...claim} />
+                      ))
+                  ) : (
+                    renderNoClaimsMessage(
+                      <XCircle className="w-16 h-16 mx-auto text-gray-300 mb-4" />,
+                      "Nenhum sinistro rejeitado",
+                      "Não há sinistros rejeitados no momento."
+                    )
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
