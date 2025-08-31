@@ -15,6 +15,8 @@ import Sobre from "./pages/sobre";
 import Contatos from "./pages/contatos";
 import { ProtectedRoute } from "./components/AccessControl";
 import { Home, Info, Phone } from "lucide-react";
+import ScrollToTop from './components/ScrollToTop'; // Importe o componente que você acabou de criar
+
 
 const queryClient = new QueryClient();
 
@@ -24,6 +26,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop /> {/* Mova o componente para fora do <Routes> */}
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
