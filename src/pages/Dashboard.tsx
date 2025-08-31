@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,48 +19,86 @@ import ClaimCard from '@/components/ClaimCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth, type UserRole } from '@/components/AccessControl';
+import { createClient } from '@supabase/supabase-js';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
-// Mock data
-const mockClaims = [
-  {
-    id: "SIN-2023-0001",
-    title: "Sinistro Automóvel - Colisão",
-    date: "15/05/2023",
-    status: "in_progress" as const,
-    description: "Colisão traseira na Av. Paulista, envolvendo dois veículos. Danos moderados no para-choque e porta traseira.",
-    unreadMessages: 2
-  },
-  {
-    id: "SIN-2023-0002",
-    title: "Sinistro Residencial - Alagamento",
-    date: "03/06/2023",
-    status: "completed" as const,
-    description: "Alagamento no apartamento devido a um vazamento no encanamento do vizinho de cima. Danos em móveis e no piso.",
-    unreadMessages: 0
-  },
-  {
-    id: "SIN-2023-0003",
-    title: "Sinistro Saúde - Cirurgia",
-    date: "22/07/2023",
-    status: "pending" as const,
-    description: "Solicitação de reembolso para cirurgia de emergência realizada no Hospital São Luiz.",
-    unreadMessages: 5
-  },
-  {
-    id: "SIN-2023-0004",
-    title: "Sinistro Automóvel - Furto",
-    date: "10/08/2023",
-    status: "rejected" as const,
-    description: "Furto de veículo no estacionamento do Shopping Morumbi. O veículo não foi recuperado.",
-    unreadMessages: 1
-  }
-];
+// Inicializa o cliente Supabase com as variáveis de ambiente
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+interface Claim {
+  id: string;
+  title: string;
+  date: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'rejected';
+  description: string;
+  unreadMessages: number;
+}
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [claims, setClaims] = useState<Claim[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newClaimTitle, setNewClaimTitle] = useState('');
+  const [newClaimDescription, setNewClaimDescription] = useState('');
   const auth = useAuth();
   
-  const filteredClaims = mockClaims.filter(claim => 
+  // Função para buscar os sinistros no Supabase
+  const fetchClaims = async () => {
+    // Busca todos os registros na tabela 'claims'
+    const { data, error } = await supabase.from('claims').select('*');
+    if (error) {
+      console.error('Erro ao buscar sinistros:', error.message);
+      return;
+    }
+    setClaims(data);
+  };
+
+  // Função para adicionar um novo sinistro no Supabase
+  const handleAddClaim = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const newClaim = {
+      title: newClaimTitle,
+      description: newClaimDescription,
+      date: new Date().toLocaleDateString('pt-BR'),
+      status: 'pending',
+      unreadMessages: 0,
+      id: crypto.randomUUID(), // Gera um ID único para o novo sinistro
+    };
+
+    // Insere o novo registro na tabela 'claims'
+    const { error } = await supabase.from('claims').insert([newClaim]);
+
+    if (error) {
+      console.error('Erro ao adicionar sinistro:', error.message);
+      return;
+    }
+
+    // Fecha o modal e limpa o formulário
+    setIsModalOpen(false);
+    setNewClaimTitle('');
+    setNewClaimDescription('');
+
+    // Atualiza a lista de sinistros
+    fetchClaims();
+  };
+
+  // Carrega os dados do Supabase quando o componente é montado
+  useEffect(() => {
+    fetchClaims();
+  }, []);
+
+  const filteredClaims = claims.filter(claim => 
     claim.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     claim.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -106,7 +143,10 @@ const Dashboard = () => {
                 <FileCheck className="w-5 h-5 mr-2 text-insurance-secondary" />
                 Meus Sinistros
               </h2>
-              <Button className="mt-4 md:mt-0 bg-insurance-primary hover:bg-insurance-dark flex items-center">
+              <Button 
+                className="mt-4 md:mt-0 bg-insurance-primary hover:bg-insurance-dark flex items-center"
+                onClick={() => setIsModalOpen(true)}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Sinistro
               </Button>
@@ -184,39 +224,4 @@ const Dashboard = () => {
                 </div>
               </TabsContent>
               
-              <TabsContent value="completed" className="mt-0">
-                <div className="grid md:grid-cols-2 gap-6">
-                  {filteredClaims
-                    .filter(claim => claim.status === 'completed')
-                    .map(claim => (
-                      <ClaimCard key={claim.id} {...claim} />
-                    ))}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-          
-          <div className="bg-white shadow-sm rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-insurance-primary flex items-center mb-6">
-              <MessageSquare className="w-5 h-5 mr-2 text-insurance-secondary" />
-              Mensagens Recentes
-            </h2>
-            <div className="text-center py-8">
-              <MessageSquare className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-700 mb-2">Centro de Mensagens</h3>
-              <p className="text-gray-500 max-w-md mx-auto mb-4">
-                Comunique-se diretamente com os analistas responsáveis pelos seus sinistros.
-              </p>
-              <Button className="bg-insurance-secondary hover:bg-insurance-accent">
-                Ver todas as mensagens
-              </Button>
-            </div>
-          </div>
-        </div>
-      </main>
-      <Footer />
-    </div>
-  );
-};
-
-export default Dashboard;
+              
