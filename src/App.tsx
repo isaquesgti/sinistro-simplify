@@ -47,11 +47,8 @@ const App = () => (
               <InsurerClaimDetails />
             </ProtectedRoute>
           } />
-          {/* Rotas para as novas páginas "Sobre" e "Contatos" */}
           <Route path="/sobre" element={<Sobre />} />
           <Route path="/contatos" element={<Contatos />} />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
