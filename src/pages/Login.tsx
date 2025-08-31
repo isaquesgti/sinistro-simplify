@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,11 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth, type UserRole } from '@/components/AccessControl';
-import { User, Shield } from 'lucide-react';
+import { User, Shield, Key } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabaseClient';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -24,96 +24,51 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // O Supabase exige que o identificador seja um email
-    // Usaremos o campo de email, independente do tab selecionado
-    const email = identifier;
-
     try {
-      if (!email || !password) {
+      // Mock login for demo purposes - would be replaced with actual authentication
+      if (identifier && password) {
+        if (identifier === 'admin@sistema.com' && password === 'admin123') {
+          auth.login('admin');
+          navigate('/admin');
+        } else if (selectedTab === 'insurer') {
+          auth.login('insurer');
+          navigate('/insurer');
+        } else {
+          auth.login('client');
+          navigate('/dashboard');
+        }
+      } else {
         toast({
           title: "Erro de login",
           description: "Por favor, preencha todos os campos.",
           variant: "destructive",
         });
-        return;
       }
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-      });
-
-      if (error) {
-        throw error;
-      }
-      
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-
-        if (userError) {
-          throw userError;
-        }
-
-        // O redirecionamento agora é baseado no role retornado do banco de dados
-        const role = userData.role as UserRole;
-        if (role === 'admin') {
-          navigate('/admin');
-        } else if (role === 'insurer') {
-          navigate('/insurer');
-        } else {
-          navigate('/dashboard');
-        }
-      }
-
-    } catch (error: any) {
+    } catch (error) {
       toast({
-        title: "Erro ao fazer login",
-        description: error.message || "Credenciais inválidas. Tente novamente.",
+        title: "Erro de login",
+        description: "Credenciais inválidas. Tente novamente.",
         variant: "destructive",
       });
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleForgotPassword = async () => {
+  const handleForgotPassword = () => {
     if (!identifier) {
       toast({
         title: "Campo obrigatório",
-        description: "Digite seu email para recuperar a senha.",
+        description: "Digite seu email ou CPF/CNPJ para recuperar a senha.",
         variant: "destructive",
       });
       return;
     }
     
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(identifier, {
-        redirectTo: `${window.location.origin}/reset-password`, // Adapte para a URL de redefinição de senha
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Email enviado",
-        description: "Instruções para redefinir sua senha foram enviadas para o seu email.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Ocorreu um erro ao tentar redefinir a senha.",
-        variant: "destructive",
-      });
-      console.error(error);
-    }
+    toast({
+      title: "Email enviado",
+      description: "Instruções para redefinir sua senha foram enviadas para o seu email.",
+    });
   };
 
   return (
@@ -143,11 +98,11 @@ const Login = () => {
               <TabsContent value="client">
                 <form onSubmit={handleLogin} className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="client-identifier">Email</Label>
+                    <Label htmlFor="client-identifier">CPF ou Email</Label>
                     <Input 
                       id="client-identifier" 
-                      type="email" 
-                      placeholder="Digite seu email"
+                      type="text" 
+                      placeholder="Digite seu CPF ou email"
                       value={identifier}
                       onChange={(e) => setIdentifier(e.target.value)}
                     />
@@ -182,11 +137,11 @@ const Login = () => {
               <TabsContent value="insurer">
                 <form onSubmit={handleLogin} className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="insurer-identifier">Email</Label>
+                    <Label htmlFor="insurer-identifier">CNPJ ou Email</Label>
                     <Input 
                       id="insurer-identifier" 
-                      type="email" 
-                      placeholder="Digite o email"
+                      type="text" 
+                      placeholder="Digite o CNPJ ou email"
                       value={identifier}
                       onChange={(e) => setIdentifier(e.target.value)}
                     />
