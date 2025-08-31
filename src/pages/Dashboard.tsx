@@ -61,7 +61,7 @@ const Dashboard = () => {
       console.error('Erro ao buscar sinistros:', error.message);
       return;
     }
-    setClaims(data);
+    setClaims(data as Claim[]);
   };
 
   // Função para adicionar um novo sinistro no Supabase
@@ -224,4 +224,78 @@ const Dashboard = () => {
                 </div>
               </TabsContent>
               
-              
+              <TabsContent value="completed" className="mt-0">
+                <div className="grid md:grid-cols-2 gap-6">
+                  {filteredClaims
+                    .filter(claim => claim.status === 'completed')
+                    .map(claim => (
+                      <ClaimCard key={claim.id} {...claim} />
+                    ))}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+          
+          <div className="bg-white shadow-sm rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-insurance-primary flex items-center mb-6">
+              <MessageSquare className="w-5 h-5 mr-2 text-insurance-secondary" />
+              Mensagens Recentes
+            </h2>
+            <div className="text-center py-8">
+              <MessageSquare className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-700 mb-2">Centro de Mensagens</h3>
+              <p className="text-gray-500 max-w-md mx-auto mb-4">
+                Comunique-se diretamente com os analistas responsáveis pelos seus sinistros.
+              </p>
+              <Button className="bg-insurance-secondary hover:bg-insurance-accent">
+                Ver todas as mensagens
+              </Button>
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo Sinistro</DialogTitle>
+            <DialogDescription>
+              Preencha os campos para abrir um novo sinistro.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAddClaim} className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="title" className="text-right">
+                Título
+              </Label>
+              <Input
+                id="title"
+                value={newClaimTitle}
+                onChange={(e) => setNewClaimTitle(e.target.value)}
+                className="col-span-3"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Descrição
+              </Label>
+              <Textarea
+                id="description"
+                value={newClaimDescription}
+                onChange={(e) => setNewClaimDescription(e.target.value)}
+                className="col-span-3"
+                required
+              />
+            </div>
+            <DialogFooter className="pt-4">
+              <Button type="submit">Adicionar Sinistro</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default Dashboard;
