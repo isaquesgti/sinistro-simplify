@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FileCheck, Mail, Phone, MapPin } from 'lucide-react';
@@ -47,11 +46,13 @@ const Footer = () => {
               <li>
                 <Link to="/" className="text-gray-300 hover:text-insurance-secondary transition">Início</Link>
               </li>
+              {/* Link para a página Sobre, ajustado para o nome do arquivo */}
               <li>
-                <Link to="/about" className="text-gray-300 hover:text-insurance-secondary transition">Sobre nós</Link>
+                <Link to="/sobre" className="text-gray-300 hover:text-insurance-secondary transition">Sobre nós</Link>
               </li>
+              {/* Link para a página de Contato, ajustado para o nome do arquivo */}
               <li>
-                <Link to="/contact" className="text-gray-300 hover:text-insurance-secondary transition">Contato</Link>
+                <Link to="/contatos" className="text-gray-300 hover:text-insurance-secondary transition">Contato</Link>
               </li>
               <li>
                 <Link to="/dashboard" className="text-gray-300 hover:text-insurance-secondary transition">Área do Cliente</Link>
