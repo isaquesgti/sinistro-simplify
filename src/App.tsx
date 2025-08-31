@@ -1,61 +1,132 @@
-import React from 'react';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
+import InsurerDashboard from "./pages/InsurerDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import ClaimDetails from "./pages/ClaimDetails";
+import InsurerClaimDetails from "./pages/InsurerClaimDetails";
+import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import { ProtectedRoute } from "./components/AccessControl";
+import { Home, Info, Phone } from "lucide-react";
 
-const App = () => {
+// Componente Sobre
+const Sobre = () => {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-800 leading-tight">
-              Simplifique todo o processo de resolução de <span className="text-blue-600">sinistros</span>
-            </h1>
-            <p className="mt-4 md:text-lg text-slate-600 max-w-2xl mx-auto">
-              Conectamos seguradoras e clientes em uma plataforma única, agilizando todo o fluxo de atendimento e resolução de sinistros.
-            </p>
-            <div className="mt-8 flex justify-center space-x-4">
-              <a href="#" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition-colors duration-300">
-                Acessar plataforma
-              </a>
-              <a href="#" className="border border-blue-600 text-blue-600 font-bold py-3 px-6 rounded-full transition-colors duration-300 hover:bg-blue-50">
-                Fale conosco
-              </a>
-            </div>
-          </div>
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200">
-              <h2 className="text-2xl font-bold text-slate-800 mb-4">
-                Processo simplificado
-              </h2>
-              <ul className="space-y-4 text-slate-600">
-                <li className="flex items-start">
-                  <span className="flex-shrink-0 text-blue-500 mr-3 mt-1">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  </span>
-                  <div>
-                    <strong className="block text-slate-800">Resposta rápida</strong>
-                    Acompanhe em tempo real o status da sua solicitação.
-                  </div>
-                </li>
-                <li className="flex items-start">
-                  <span className="flex-shrink-0 text-blue-500 mr-3 mt-1">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.61 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  </span>
-                  <div>
-                    <strong className="block text-slate-800">Segurança garantida</strong>
-                    Seus dados e documentos protegidos com alta segurança.
-                  </div>
-                </li>
-              </ul>
-            </div>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4">
+      <nav className="fixed top-0 left-0 w-full bg-white dark:bg-gray-800 shadow-md z-50">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <Link to="/" className="flex items-center space-x-2 text-xl font-bold">
+            <Home className="w-6 h-6" />
+            <span>Home</span>
+          </Link>
+          <div className="flex space-x-4">
+            <Link to="/sobre" className="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">
+              <Info className="w-6 h-6" />
+            </Link>
+            <Link to="/contatos" className="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">
+              <Phone className="w-6 h-6" />
+            </Link>
           </div>
         </div>
-      </main>
-      <Footer />
+      </nav>
+      <div className="mt-20 text-center">
+        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">
+          Sobre Nós
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Somos uma empresa dedicada a fornecer as melhores soluções para gerenciar sinistros de seguros de forma eficiente e transparente. Nossa missão é simplificar o processo tanto para clientes quanto para seguradoras, garantindo um serviço rápido e confiável.
+        </p>
+      </div>
     </div>
   );
 };
+
+// Componente Contatos
+const Contatos = () => {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4">
+      <nav className="fixed top-0 left-0 w-full bg-white dark:bg-gray-800 shadow-md z-50">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <Link to="/" className="flex items-center space-x-2 text-xl font-bold">
+            <Home className="w-6 h-6" />
+            <span>Home</span>
+          </Link>
+          <div className="flex space-x-4">
+            <Link to="/sobre" className="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">
+              <Info className="w-6 h-6" />
+            </Link>
+            <Link to="/contatos" className="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">
+              <Phone className="w-6 h-6" />
+            </Link>
+          </div>
+        </div>
+      </nav>
+      <div className="mt-20 text-center">
+        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">
+          Contatos
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Entre em contato conosco para mais informações.
+        </p>
+        <div className="mt-8 flex flex-col items-center space-y-4">
+          <div className="flex items-center space-x-2">
+            <Phone className="w-6 h-6 text-blue-500" />
+            <span>(11) 9999-9999</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Info className="w-6 h-6 text-blue-500" />
+            <span>contato@nossaempresa.com.br</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute allowedRole="client" redirectTo="/insurer">
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/insurer" element={
+            <ProtectedRoute allowedRole="insurer" redirectTo="/dashboard">
+              <InsurerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRole="admin" redirectTo="/dashboard">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/claim/:id" element={<ClaimDetails />} />
+          <Route path="/insurer/claim/:id" element={
+            <ProtectedRoute allowedRole="insurer" redirectTo="/dashboard">
+              <InsurerClaimDetails />
+            </ProtectedRoute>
+          } />
+          <Route path="/sobre" element={<Sobre />} />
+          <Route path="/contatos" element={<Contatos />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
