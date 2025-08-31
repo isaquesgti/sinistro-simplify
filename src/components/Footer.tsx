@@ -44,9 +44,9 @@ const Footer = () => {
               <li>
                 <Link to="/sobre" className="text-gray-300 hover:text-insurance-secondary transition">Sobre</Link>
               </li>
-              /* <li>
+              {/* <li>
                 <Link to="/contatos" className="text-gray-300 hover:text-insurance-secondary transition">Contato</Link>
-              </li> */
+              </li> */}
               {/* Novo link para a página de login */}
               <li>
                 <Link to="/login" className="text-gray-300 hover:text-insurance-secondary transition">Fazer Login</Link>
@@ -107,4 +107,5 @@ const Footer = () => {
 };
 
 export default Footer;
+
 
