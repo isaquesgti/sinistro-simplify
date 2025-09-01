@@ -1,25 +1,88 @@
 
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabaseClient';
 
 type UserRole = 'client' | 'insurer' | 'admin' | null;
 
-// Mock authentication for now
+type Profile = {
+  id: string;
+  role: Exclude<UserRole, null> | null;
+  insurer_id: string | null;
+};
+
 const useAuth = () => {
-  // This would be replaced with actual authentication logic later
-  const role = localStorage.getItem('userRole') as UserRole;
-  
+  const [session, setSession] = React.useState<Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session'] | null>(null);
+  const [profile, setProfile] = React.useState<Profile | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  const devRole = React.useMemo(() => localStorage.getItem('userRole') as UserRole, []);
+
+  React.useEffect(() => {
+    let mounted = true;
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      setSession(data.session);
+      if (data.session?.user) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('id, role, insurer_id')
+          .eq('id', data.session.user.id)
+          .single();
+        if (mounted) setProfile((prof as Profile) ?? null);
+      }
+      setLoading(false);
+    };
+    init();
+
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, sess) => {
+      setSession(sess);
+      if (sess?.user) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('id, role, insurer_id')
+          .eq('id', sess.user.id)
+          .single();
+        setProfile((prof as Profile) ?? null);
+      } else {
+        setProfile(null);
+      }
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const role: UserRole = profile?.role ?? (session ? 'client' : devRole ?? null);
+
+  const login = async (arg: UserRole | { email: string; password: string }) => {
+    if (typeof arg === 'string') {
+      localStorage.setItem('userRole', arg);
+      window.location.reload();
+      return;
+    }
+    const { email, password } = arg;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    // profile will be fetched via onAuthStateChange
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    localStorage.removeItem('userRole');
+    window.location.reload();
+  };
+
   return {
     role,
-    isAuthenticated: !!role,
-    login: (role: UserRole) => {
-      localStorage.setItem('userRole', role);
-      window.location.reload();
-    },
-    logout: () => {
-      localStorage.removeItem('userRole');
-      window.location.reload();
-    }
+    isAuthenticated: !!session?.user || !!devRole,
+    user: session?.user ?? null,
+    profile,
+    loading,
+    login,
+    logout,
   };
 };
 
@@ -37,10 +100,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const auth = useAuth();
   
   if (!auth.isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
   
-  if (auth.role !== allowedRole) {
+  if (allowedRole && auth.role !== allowedRole) {
     return <Navigate to={redirectTo} replace />;
   }
   

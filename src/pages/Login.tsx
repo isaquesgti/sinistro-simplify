@@ -23,27 +23,24 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
     try {
-      // Mock login for demo purposes - would be replaced with actual authentication
-      if (identifier && password) {
-        if (identifier === 'admin@sistema.com' && password === 'admin123') {
-          auth.login('admin');
-          navigate('/admin');
-        } else if (selectedTab === 'insurer') {
-          auth.login('insurer');
-          navigate('/insurer');
-        } else {
-          auth.login('client');
-          navigate('/dashboard');
-        }
-      } else {
+      if (!identifier || !password) {
         toast({
           title: "Erro de login",
-          description: "Por favor, preencha todos os campos.",
+          description: "Por favor, preencha email e senha.",
           variant: "destructive",
         });
+        return;
       }
+
+      await auth.login({ email: identifier, password });
+
+      setTimeout(() => {
+        const role = auth.role || 'client';
+        if (role === 'admin') navigate('/admin');
+        else if (role === 'insurer') navigate('/insurer');
+        else navigate('/dashboard');
+      }, 200);
     } catch (error) {
       toast({
         title: "Erro de login",

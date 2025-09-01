@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabaseClient';
 
 const formSchema = z.object({
   companyName: z.string().min(2, { message: 'Nome da empresa é obrigatório' }),
@@ -46,15 +47,36 @@ const InsurerRegistrationForm: React.FC<InsurerRegistrationFormProps> = ({ onSuc
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    toast({
-      title: "Seguradora registrada com sucesso",
-      description: "Um email foi enviado com as instruções de acesso.",
-    });
-    
-    if (onSuccess) {
-      onSuccess();
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const { data: plan } = await supabase
+        .from('plans')
+        .select('id')
+        .eq('name', values.plan)
+        .single();
+
+      const { error } = await supabase.from('insurers').insert({
+        company_name: values.companyName,
+        cnpj: values.cnpj,
+        phone: values.phone,
+        plan_id: plan?.id ?? null,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Seguradora registrada com sucesso",
+        description: "Registro criado com sucesso.",
+      });
+
+      form.reset();
+      if (onSuccess) onSuccess();
+    } catch (err) {
+      toast({
+        title: "Erro ao registrar",
+        description: "Verifique os dados e tente novamente.",
+        variant: "destructive",
+      });
     }
   }
 

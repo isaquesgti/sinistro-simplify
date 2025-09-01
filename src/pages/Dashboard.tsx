@@ -20,48 +20,46 @@ import ClaimCard from '@/components/ClaimCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth, type UserRole } from '@/components/AccessControl';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabaseClient';
 
-// Mock data
-const mockClaims = [
-  {
-    id: "SIN-2023-0001",
-    title: "Sinistro Automóvel - Colisão",
-    date: "15/05/2023",
-    status: "in_progress" as const,
-    description: "Colisão traseira na Av. Paulista, envolvendo dois veículos. Danos moderados no para-choque e porta traseira.",
-    unreadMessages: 2
-  },
-  {
-    id: "SIN-2023-0002",
-    title: "Sinistro Residencial - Alagamento",
-    date: "03/06/2023",
-    status: "completed" as const,
-    description: "Alagamento no apartamento devido a um vazamento no encanamento do vizinho de cima. Danos em móveis e no piso.",
-    unreadMessages: 0
-  },
-  {
-    id: "SIN-2023-0003",
-    title: "Sinistro Saúde - Cirurgia",
-    date: "22/07/2023",
-    status: "pending" as const,
-    description: "Solicitação de reembolso para cirurgia de emergência realizada no Hospital São Luiz.",
-    unreadMessages: 5
-  },
-  {
-    id: "SIN-2023-0004",
-    title: "Sinistro Automóvel - Furto",
-    date: "10/08/2023",
-    status: "rejected" as const,
-    description: "Furto de veículo no estacionamento do Shopping Morumbi. O veículo não foi recuperado.",
-    unreadMessages: 1
-  }
-];
+type DbClaim = {
+  id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'rejected';
+  created_at: string;
+};
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const auth = useAuth();
-  
-  const filteredClaims = mockClaims.filter(claim => 
+
+  const { data: claims = [], isLoading } = useQuery<DbClaim[]>({
+    queryKey: ['claims', 'client', auth.user?.id],
+    queryFn: async () => {
+      if (!auth.user?.id) return [];
+      const { data, error } = await supabase
+        .from('claims')
+        .select('id, title, description, status, created_at')
+        .eq('client_id', auth.user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as DbClaim[];
+    },
+    enabled: !!auth.user?.id,
+  });
+
+  const mappedClaims = claims.map((c) => ({
+    id: c.id,
+    title: c.title,
+    date: new Date(c.created_at).toLocaleDateString('pt-BR'),
+    status: c.status,
+    description: c.description,
+    unreadMessages: 0,
+  }));
+
+  const filteredClaims = mappedClaims.filter(claim => 
     claim.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     claim.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
