@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 
 type UserRole = 'client' | 'insurer' | 'admin' | null;
 
