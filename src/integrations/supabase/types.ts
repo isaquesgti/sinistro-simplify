@@ -192,30 +192,42 @@ export type Database = {
       }
       insurers: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           cnpj: string
           company_name: string
           created_at: string
           id: string
           phone: string | null
           plan_id: string | null
+          status: Database["public"]["Enums"]["insurer_status"]
+          updated_at: string
           user_id: string | null
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           cnpj: string
           company_name: string
           created_at?: string
           id?: string
           phone?: string | null
           plan_id?: string | null
+          status?: Database["public"]["Enums"]["insurer_status"]
+          updated_at?: string
           user_id?: string | null
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           cnpj?: string
           company_name?: string
           created_at?: string
           id?: string
           phone?: string | null
           plan_id?: string | null
+          status?: Database["public"]["Enums"]["insurer_status"]
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: [
@@ -380,6 +392,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_insurer_id: {
+        Args: { _user_id: string }
+        Returns: string
+      }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -390,6 +410,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      insurer_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -518,6 +539,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      insurer_status: ["pending", "approved", "rejected"],
     },
   },
 } as const
