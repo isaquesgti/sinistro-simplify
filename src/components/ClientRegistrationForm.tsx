@@ -14,7 +14,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/AccessControl';
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: 'Nome completo é obrigatório' }),
@@ -29,7 +28,6 @@ interface ClientRegistrationFormProps {
 }
 
 const ClientRegistrationForm: React.FC<ClientRegistrationFormProps> = ({ onSuccess }) => {
-  const auth = useAuth();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -43,17 +41,6 @@ const ClientRegistrationForm: React.FC<ClientRegistrationFormProps> = ({ onSucce
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // Get insurer ID for the current user
-      const { data: insurerData } = await supabase
-        .from('insurers')
-        .select('id')
-        .eq('profile_id', auth.user?.id)
-        .single();
-
-      if (!insurerData) {
-        throw new Error('Seguradora não encontrada');
-      }
-
       // Create user in Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
@@ -67,32 +54,6 @@ const ClientRegistrationForm: React.FC<ClientRegistrationFormProps> = ({ onSucce
       });
 
       if (authError) throw authError;
-
-      if (authData.user) {
-        // Update the profile to link with insurer
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            insurer_id: insurerData.id,
-            email: values.email,
-            full_name: values.fullName
-          })
-          .eq('id', authData.user.id);
-
-        if (profileError) throw profileError;
-
-        // Create client record
-        const { error: clientError } = await supabase
-          .from('clients')
-          .insert({
-            profile_id: authData.user.id,
-            insurer_id: insurerData.id,
-            cpf: values.cpf,
-            phone: values.phone
-          });
-
-        if (clientError) throw clientError;
-      }
 
       toast({
         title: "Cliente cadastrado com sucesso",
