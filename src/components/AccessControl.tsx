@@ -55,6 +55,15 @@ const useAuth = () => {
   }, []);
 
   const role: UserRole = profile?.role ?? (session ? 'client' : devRole ?? null);
+  
+  // Debug logging
+  console.log('Auth Debug:', {
+    session: !!session,
+    profile,
+    role,
+    isAuthenticated: !!session?.user || !!devRole,
+    userId: session?.user?.id
+  });
 
   const login = async (arg: UserRole | { email: string; password: string }) => {
     if (typeof arg === 'string') {
