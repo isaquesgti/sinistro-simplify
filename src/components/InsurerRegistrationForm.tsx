@@ -49,24 +49,9 @@ const InsurerRegistrationForm: React.FC<InsurerRegistrationFormProps> = ({ onSuc
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const { data: plan } = await supabase
-        .from('plans')
-        .select('id')
-        .eq('name', values.plan)
-        .single();
-
-      const { error } = await supabase.from('insurers').insert({
-        company_name: values.companyName,
-        cnpj: values.cnpj,
-        phone: values.phone,
-        plan_id: plan?.id ?? null,
-      });
-
-      if (error) throw error;
-
       toast({
-        title: "Seguradora registrada com sucesso",
-        description: "Registro criado com sucesso.",
+        title: "Solicitação recebida",
+        description: "O cadastro de seguradora será processado pelo administrador.",
       });
 
       form.reset();

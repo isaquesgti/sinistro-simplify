@@ -20,6 +20,13 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState<UserRole>('client');
 
+  React.useEffect(() => {
+    if (auth.isAuthenticated && auth.role) {
+      if (auth.role === 'admin') navigate('/admin');
+      else if (auth.role === 'insurer') navigate('/insurer');
+      else navigate('/dashboard');
+    }
+  }, [auth.isAuthenticated, auth.role, navigate]);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -35,12 +42,7 @@ const Login = () => {
 
       await auth.login({ email: identifier, password });
 
-      setTimeout(() => {
-        const role = auth.role || 'client';
-        if (role === 'admin') navigate('/admin');
-        else if (role === 'insurer') navigate('/insurer');
-        else navigate('/dashboard');
-      }, 200);
+      // Navegação será tratada no useEffect quando o perfil carregar
     } catch (error) {
       toast({
         title: "Erro de login",

@@ -8,7 +8,6 @@ type UserRole = 'client' | 'insurer' | 'admin' | null;
 type Profile = {
   id: string;
   role: Exclude<UserRole, null> | null;
-  insurer_id: string | null;
 };
 
 const useAuth = () => {
@@ -27,7 +26,7 @@ const useAuth = () => {
       if (data.session?.user) {
         const { data: prof } = await supabase
           .from('profiles')
-          .select('id, role, insurer_id')
+          .select('id, role')
           .eq('id', data.session.user.id)
           .single();
         if (mounted) setProfile((prof as Profile) ?? null);
@@ -41,7 +40,7 @@ const useAuth = () => {
       if (sess?.user) {
         const { data: prof } = await supabase
           .from('profiles')
-          .select('id, role, insurer_id')
+          .select('id, role')
           .eq('id', sess.user.id)
           .single();
         setProfile((prof as Profile) ?? null);
