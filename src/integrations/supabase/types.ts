@@ -136,11 +136,49 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      clients: {
+        Row: {
+          cpf: string | null
+          created_at: string | null
+          id: string
+          insurer_id: string
+          phone: string | null
+          profile_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string | null
+          id?: string
+          insurer_id: string
+          phone?: string | null
+          profile_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string | null
+          id?: string
+          insurer_id?: string
+          phone?: string | null
+          profile_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
           {
-            foreignKeyName: "claims_insurer_id_fkey"
+            foreignKeyName: "clients_insurer_id_fkey"
             columns: ["insurer_id"]
             isOneToOne: false
             referencedRelation: "insurers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -196,53 +234,50 @@ export type Database = {
           approved_by: string | null
           cnpj: string
           company_name: string
-          created_at: string
+          created_at: string | null
           id: string
           phone: string | null
-          plan_id: string | null
+          profile_id: string
           status: Database["public"]["Enums"]["insurer_status"]
-          updated_at: string
-          user_id: string | null
+          updated_at: string | null
         }
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
           cnpj: string
           company_name: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           phone?: string | null
-          plan_id?: string | null
+          profile_id: string
           status?: Database["public"]["Enums"]["insurer_status"]
-          updated_at?: string
-          user_id?: string | null
+          updated_at?: string | null
         }
         Update: {
           approved_at?: string | null
           approved_by?: string | null
           cnpj?: string
           company_name?: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           phone?: string | null
-          plan_id?: string | null
+          profile_id?: string
           status?: Database["public"]["Enums"]["insurer_status"]
-          updated_at?: string
-          user_id?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "insurers_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: "insurers_approved_by_fkey"
+            columns: ["approved_by"]
             isOneToOne: false
-            referencedRelation: "plans"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "insurers_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
+            foreignKeyName: "insurers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -315,19 +350,25 @@ export type Database = {
       }
       profiles: {
         Row: {
+          created_at: string | null
+          full_name: string | null
           id: string
-          insurer_id: string
-          role: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          updated_at: string | null
         }
         Insert: {
+          created_at?: string | null
+          full_name?: string | null
           id: string
-          insurer_id: string
-          role?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string | null
         }
         Update: {
+          created_at?: string | null
+          full_name?: string | null
           id?: string
-          insurer_id?: string
-          role?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -356,15 +397,7 @@ export type Database = {
           status?: string | null
           title?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_insurer"
-            columns: ["insurer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["insurer_id"]
-          },
-        ]
+        Relationships: []
       }
       users: {
         Row: {
@@ -392,9 +425,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_my_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_insurer_id: {
         Args: { _user_id: string }
         Returns: string
+      }
+      get_user_profile_by_email: {
+        Args: { user_email: string }
+        Returns: {
+          email: string
+          full_name: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+        }[]
       }
       get_user_role: {
         Args: { _user_id: string }
@@ -406,10 +452,19 @@ export type Database = {
           | { _role: string; _user_id: string }
         Returns: boolean
       }
+      test_auth: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      user_exists_for_reset: {
+        Args: { user_email: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
       insurer_status: "pending" | "approved" | "rejected"
+      user_role: "admin" | "insurer" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -539,6 +594,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       insurer_status: ["pending", "approved", "rejected"],
+      user_role: ["admin", "insurer", "client"],
     },
   },
 } as const
