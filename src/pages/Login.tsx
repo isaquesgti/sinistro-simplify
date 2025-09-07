@@ -83,7 +83,7 @@ const Login = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="client" onValueChange={(value) => setSelectedTab(value as UserRole)} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="client" className="flex items-center justify-center gap-2">
                   <User className="h-4 w-4" />
                   Cliente
@@ -91,6 +91,10 @@ const Login = () => {
                 <TabsTrigger value="insurer" className="flex items-center justify-center gap-2">
                   <Shield className="h-4 w-4" />
                   Seguradora
+                </TabsTrigger>
+                <TabsTrigger value="admin" className="flex items-center justify-center gap-2">
+                  <Key className="h-4 w-4" />
+                  Admin
                 </TabsTrigger>
               </TabsList>
               
@@ -170,6 +174,75 @@ const Login = () => {
                     {isLoading ? 'Processando...' : 'Entrar'}
                   </Button>
                 </form>
+              </TabsContent>
+              
+              <TabsContent value="admin">
+                <form onSubmit={handleLogin} className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-identifier">Email</Label>
+                    <Input 
+                      id="admin-identifier" 
+                      type="text" 
+                      placeholder="Digite o email"
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <Label htmlFor="admin-password">Senha</Label>
+                      <Button 
+                        type="button" 
+                        variant="link" 
+                        size="sm" 
+                        className="px-0 h-auto font-normal text-xs"
+                        onClick={handleForgotPassword}
+                      >
+                        Esqueci a senha
+                      </Button>
+                    </div>
+                    <Input 
+                      id="admin-password" 
+                      type="password" 
+                      placeholder="Digite sua senha"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Processando...' : 'Entrar'}
+                  </Button>
+                </form>
+                
+                <div className="mt-6 pt-4 border-t">
+                  <p className="text-sm text-gray-600 mb-3">Acesso de Desenvolvimento:</p>
+                  <div className="space-y-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="w-full" 
+                      onClick={() => auth.login('admin')}
+                    >
+                      Admin (Desenvolvimento)
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="w-full" 
+                      onClick={() => auth.login('insurer')}
+                    >
+                      Seguradora (Desenvolvimento)
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="w-full" 
+                      onClick={() => auth.login('client')}
+                    >
+                      Cliente (Desenvolvimento)
+                    </Button>
+                  </div>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
