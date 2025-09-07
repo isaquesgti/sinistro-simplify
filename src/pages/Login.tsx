@@ -21,12 +21,19 @@ const Login = () => {
   const [selectedTab, setSelectedTab] = useState<UserRole>('client');
 
   React.useEffect(() => {
+    if (auth.loading) return; // Wait for auth to finish loading
+    
     if (auth.isAuthenticated && auth.role) {
-      if (auth.role === 'admin') navigate('/admin');
-      else if (auth.role === 'insurer') navigate('/insurer');
-      else navigate('/dashboard');
+      const targetPath = auth.role === 'admin' ? '/admin' 
+                       : auth.role === 'insurer' ? '/insurer' 
+                       : '/dashboard';
+      
+      // Only navigate if we're not already on the target path
+      if (window.location.pathname !== targetPath) {
+        navigate(targetPath, { replace: true });
+      }
     }
-  }, [auth.isAuthenticated, auth.role, navigate]);
+  }, [auth.isAuthenticated, auth.role, auth.loading, navigate]);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);

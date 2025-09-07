@@ -59,7 +59,8 @@ const useAuth = () => {
   const login = async (arg: UserRole | { email: string; password: string }) => {
     if (typeof arg === 'string') {
       localStorage.setItem('userRole', arg);
-      window.location.reload();
+      // Force role update without page reload
+      setProfile({ id: 'dev-user', role: arg });
       return;
     }
     const { email, password } = arg;
@@ -71,7 +72,8 @@ const useAuth = () => {
   const logout = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem('userRole');
-    window.location.reload();
+    setProfile(null);
+    setSession(null);
   };
 
   return {
