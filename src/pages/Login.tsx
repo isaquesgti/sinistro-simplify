@@ -23,15 +23,13 @@ const Login = () => {
   React.useEffect(() => {
     if (auth.loading) return; // Wait for auth to finish loading
     
-    if (auth.isAuthenticated && auth.role) {
+    // Only redirect if we're authenticated and not already navigating
+    if (auth.isAuthenticated && auth.role && window.location.pathname === '/login') {
       const targetPath = auth.role === 'admin' ? '/admin' 
                        : auth.role === 'insurer' ? '/insurer' 
                        : '/dashboard';
       
-      // Only navigate if we're not already on the target path
-      if (window.location.pathname !== targetPath) {
-        navigate(targetPath, { replace: true });
-      }
+      navigate(targetPath, { replace: true });
     }
   }, [auth.isAuthenticated, auth.role, auth.loading, navigate]);
   const handleLogin = async (e: React.FormEvent) => {

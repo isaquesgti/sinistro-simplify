@@ -101,7 +101,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const auth = useAuth();
 
   if (auth.loading) {
-    return null;
+    return <div>Loading...</div>;
   }
   
   if (!auth.isAuthenticated) {
@@ -109,7 +109,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
   
   if (allowedRole && auth.role !== allowedRole) {
-    return <Navigate to={redirectTo} replace />;
+    // Prevent circular redirects by checking the current path
+    const currentPath = window.location.pathname;
+    if (currentPath !== redirectTo && currentPath !== '/login') {
+      return <Navigate to={redirectTo} replace />;
+    }
+    // If we're already on the redirect path or login, show access denied instead
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Acesso Negado</h1>
+          <p className="text-gray-600 mb-4">Você não tem permissão para acessar esta página.</p>
+          <Navigate to="/login" replace />
+        </div>
+      </div>
+    );
   }
   
   return <>{children}</>;
