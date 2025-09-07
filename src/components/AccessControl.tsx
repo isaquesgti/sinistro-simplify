@@ -54,7 +54,7 @@ const useAuth = () => {
     };
   }, []);
 
-  const role: UserRole = profile?.role ?? (session ? 'client' : devRole ?? null);
+  const role: UserRole = profile?.role ?? (devRole ?? null);
 
   const login = async (arg: UserRole | { email: string; password: string }) => {
     if (typeof arg === 'string') {
@@ -97,6 +97,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo 
 }) => {
   const auth = useAuth();
+
+  if (auth.loading) {
+    return null;
+  }
   
   if (!auth.isAuthenticated) {
     return <Navigate to="/login" replace />;
