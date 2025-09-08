@@ -1,24 +1,29 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth, type UserRole } from '@/components/AccessControl';
-import { User, Shield, Key } from 'lucide-react';
+import { User, Shield } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AdminLogin from '@/components/AdminLogin';
 import { toast } from '@/hooks/use-toast';
 
 const Login = () => {
   const navigate = useNavigate();
   const auth = useAuth();
+  const [searchParams] = useSearchParams();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState<UserRole>('client');
+  
+  // Verificar se é acesso admin via URL
+  const isAdminAccess = searchParams.get('tab') === 'admin';
 
   React.useEffect(() => {
     if (auth.loading) return; // Wait for auth to finish loading
@@ -79,185 +84,115 @@ const Login = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow flex items-center justify-center bg-gray-50 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-insurance-primary">Acesso ao Sistema</CardTitle>
-            <CardDescription>
-              Faça login para acessar sua conta
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="client" onValueChange={(value) => setSelectedTab(value as UserRole)} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="client" className="flex items-center justify-center gap-2">
-                  <User className="h-4 w-4" />
-                  Cliente
-                </TabsTrigger>
-                <TabsTrigger value="insurer" className="flex items-center justify-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  Seguradora
-                </TabsTrigger>
-                <TabsTrigger value="admin" className="flex items-center justify-center gap-2">
-                  <Key className="h-4 w-4" />
-                  Admin
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="client">
-                <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="client-identifier">CPF ou Email</Label>
-                    <Input 
-                      id="client-identifier" 
-                      type="text" 
-                      placeholder="Digite seu CPF ou email"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <Label htmlFor="client-password">Senha</Label>
-                      <Button 
-                        type="button" 
-                        variant="link" 
-                        size="sm" 
-                        className="px-0 h-auto font-normal text-xs"
-                        onClick={handleForgotPassword}
-                      >
-                        Esqueci a senha
-                      </Button>
-                    </div>
-                    <Input 
-                      id="client-password" 
-                      type="password" 
-                      placeholder="Digite sua senha"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Processando...' : 'Entrar'}
-                  </Button>
-                </form>
-              </TabsContent>
-              
-              <TabsContent value="insurer">
-                <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="insurer-identifier">CNPJ ou Email</Label>
-                    <Input 
-                      id="insurer-identifier" 
-                      type="text" 
-                      placeholder="Digite o CNPJ ou email"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <Label htmlFor="insurer-password">Senha</Label>
-                      <Button 
-                        type="button" 
-                        variant="link" 
-                        size="sm" 
-                        className="px-0 h-auto font-normal text-xs"
-                        onClick={handleForgotPassword}
-                      >
-                        Esqueci a senha
-                      </Button>
-                    </div>
-                    <Input 
-                      id="insurer-password" 
-                      type="password" 
-                      placeholder="Digite sua senha"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Processando...' : 'Entrar'}
-                  </Button>
-                </form>
-              </TabsContent>
-              
-              <TabsContent value="admin">
-                <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="admin-identifier">Email</Label>
-                    <Input 
-                      id="admin-identifier" 
-                      type="text" 
-                      placeholder="Digite o email"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <Label htmlFor="admin-password">Senha</Label>
-                      <Button 
-                        type="button" 
-                        variant="link" 
-                        size="sm" 
-                        className="px-0 h-auto font-normal text-xs"
-                        onClick={handleForgotPassword}
-                      >
-                        Esqueci a senha
-                      </Button>
-                    </div>
-                    <Input 
-                      id="admin-password" 
-                      type="password" 
-                      placeholder="Digite sua senha"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Processando...' : 'Entrar'}
-                  </Button>
-                </form>
+        {isAdminAccess ? (
+          <AdminLogin />
+        ) : (
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-bold text-insurance-primary">Acesso ao Sistema</CardTitle>
+              <CardDescription>
+                Faça login para acessar sua conta
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="client" onValueChange={(value) => setSelectedTab(value as UserRole)} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="client" className="flex items-center justify-center gap-2">
+                    <User className="h-4 w-4" />
+                    Cliente
+                  </TabsTrigger>
+                  <TabsTrigger value="insurer" className="flex items-center justify-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Seguradora
+                  </TabsTrigger>
+                </TabsList>
                 
-                <div className="mt-6 pt-4 border-t">
-                  <p className="text-sm text-gray-600 mb-3">Acesso de Desenvolvimento:</p>
-                  <div className="space-y-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="w-full" 
-                      onClick={() => auth.login('admin')}
-                    >
-                      Admin (Desenvolvimento)
+                <TabsContent value="client">
+                  <form onSubmit={handleLogin} className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="client-identifier">CPF ou Email</Label>
+                      <Input 
+                        id="client-identifier" 
+                        type="text" 
+                        placeholder="Digite seu CPF ou email"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="client-password">Senha</Label>
+                        <Button 
+                          type="button" 
+                          variant="link" 
+                          size="sm" 
+                          className="px-0 h-auto font-normal text-xs"
+                          onClick={handleForgotPassword}
+                        >
+                          Esqueci a senha
+                        </Button>
+                      </div>
+                      <Input 
+                        id="client-password" 
+                        type="password" 
+                        placeholder="Digite sua senha"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? 'Processando...' : 'Entrar'}
                     </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="w-full" 
-                      onClick={() => auth.login('insurer')}
-                    >
-                      Seguradora (Desenvolvimento)
+                  </form>
+                </TabsContent>
+                
+                <TabsContent value="insurer">
+                  <form onSubmit={handleLogin} className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="insurer-identifier">CNPJ ou Email</Label>
+                      <Input 
+                        id="insurer-identifier" 
+                        type="text" 
+                        placeholder="Digite o CNPJ ou email"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="insurer-password">Senha</Label>
+                        <Button 
+                          type="button" 
+                          variant="link" 
+                          size="sm" 
+                          className="px-0 h-auto font-normal text-xs"
+                          onClick={handleForgotPassword}
+                        >
+                          Esqueci a senha
+                        </Button>
+                      </div>
+                      <Input 
+                        id="insurer-password" 
+                        type="password" 
+                        placeholder="Digite sua senha"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? 'Processando...' : 'Entrar'}
                     </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="w-full" 
-                      onClick={() => auth.login('client')}
-                    >
-                      Cliente (Desenvolvimento)
-                    </Button>
-                  </div>
-                </div>
-              </TabsContent>
-
-            </Tabs>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <p className="text-sm text-gray-500">
-              Para dúvidas, entre em contato com o suporte
-            </p>
-          </CardFooter>
-        </Card>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+            <CardFooter className="flex justify-center">
+              <p className="text-sm text-gray-500">
+                Para dúvidas, entre em contato com o suporte
+              </p>
+            </CardFooter>
+          </Card>
+        )}
       </main>
       <Footer />
     </div>

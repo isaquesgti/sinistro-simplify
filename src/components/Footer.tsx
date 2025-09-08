@@ -97,9 +97,17 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-gray-700 pt-6 mt-6">
-          <p className="text-center text-gray-400 text-sm">
-            &copy; {new Date().getFullYear()} SinistroSimplify. Todos os direitos reservados.
-          </p>
+          <div className="flex justify-between items-center">
+            <p className="text-gray-400 text-sm">
+              &copy; {new Date().getFullYear()} SinistroSimplify. Todos os direitos reservados.
+            </p>
+            <Link 
+              to="/login?tab=admin" 
+              className="text-gray-500 hover:text-gray-300 text-xs transition-colors duration-200"
+            >
+              Admin
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
