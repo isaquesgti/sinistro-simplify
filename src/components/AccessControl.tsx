@@ -19,38 +19,60 @@ const useAuth = () => {
 
   React.useEffect(() => {
     let mounted = true;
-    const init = async () => {
-      const { data } = await supabase.auth.getSession();
+    
+    // Set up auth state listener first
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, sess) => {
       if (!mounted) return;
+      
+      setSession(sess);
+      
+      if (sess?.user) {
+        // Use setTimeout to prevent auth state callback deadlock
+        setTimeout(() => {
+          supabase
+            .from('profiles')
+            .select('id, role')
+            .eq('id', sess.user.id)
+            .single()
+            .then(({ data: prof }) => {
+              if (mounted) {
+                setProfile((prof as Profile) ?? null);
+                setLoading(false);
+              }
+            });
+        }, 0);
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
+    });
+
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      
       setSession(data.session);
+      
       if (data.session?.user) {
-        const { data: prof } = await supabase
+        supabase
           .from('profiles')
           .select('id, role')
           .eq('id', data.session.user.id)
-          .single();
-        if (mounted) setProfile((prof as Profile) ?? null);
-      }
-      setLoading(false);
-    };
-    init();
-
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, sess) => {
-      setSession(sess);
-      if (sess?.user) {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('id, role')
-          .eq('id', sess.user.id)
-          .single();
-        setProfile((prof as Profile) ?? null);
+          .single()
+          .then(({ data: prof }) => {
+            if (mounted) {
+              setProfile((prof as Profile) ?? null);
+              setLoading(false);
+            }
+          });
       } else {
-        setProfile(null);
+        setLoading(false);
       }
     });
+
     return () => {
       mounted = false;
-      sub.subscription.unsubscribe();
+      subscription.subscription.unsubscribe();
     };
   }, []);
 
