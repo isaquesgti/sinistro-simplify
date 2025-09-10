@@ -1,155 +1,85 @@
-
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { useEffect, useState, createContext, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
-type UserRole = 'client' | 'insurer' | 'admin' | null;
+export type UserRole = 'admin' | 'insurer' | 'client';
 
-type Profile = {
-  id: string;
-  role: Exclude<UserRole, null> | null;
-};
+interface AuthContextType {
+  user: any;
+  role: UserRole | null;
+  loading: boolean;
+  signOut: () => Promise<void>;
+}
 
-const useAuth = () => {
-  const [session, setSession] = React.useState<Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session'] | null>(null);
-  const [profile, setProfile] = React.useState<Profile | null>(null);
-  const [loading, setLoading] = React.useState(true);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-  const devRole = React.useMemo(() => localStorage.getItem('userRole') as UserRole, []);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<any>(null);
+  const [role, setRole] = useState<UserRole | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
-    let mounted = true;
-    
-    // Set up auth state listener first
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, sess) => {
-      if (!mounted) return;
-      
-      setSession(sess);
-      
-      if (sess?.user) {
-        // Use setTimeout to prevent auth state callback deadlock
-        setTimeout(() => {
-          supabase
-            .from('profiles')
-            .select('id, role')
-            .eq('id', sess.user.id)
-            .single()
-            .then(({ data: prof }) => {
-              if (mounted) {
-                setProfile((prof as Profile) ?? null);
-                setLoading(false);
-              }
-            });
-        }, 0);
-      } else {
-        setProfile(null);
-        setLoading(false);
-      }
-    });
-
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      
-      setSession(data.session);
-      
-      if (data.session?.user) {
-        supabase
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (session) {
+        const { data: profile } = await supabase
           .from('profiles')
-          .select('id, role')
-          .eq('id', data.session.user.id)
-          .single()
-          .then(({ data: prof }) => {
-            if (mounted) {
-              setProfile((prof as Profile) ?? null);
-              setLoading(false);
-            }
-          });
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        
+        setUser(session.user);
+        setRole(profile?.role || null);
       } else {
-        setLoading(false);
+        setUser(null);
+        setRole(null);
       }
+      setLoading(false);
+    };
+
+    fetchUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      fetchUser();
     });
 
     return () => {
-      mounted = false;
-      subscription.subscription.unsubscribe();
+      authListener?.subscription.unsubscribe();
     };
   }, []);
 
-  const role: UserRole = profile?.role ?? (devRole ?? null);
-
-  const login = async (arg: UserRole | { email: string; password: string }) => {
-    if (typeof arg === 'string') {
-      localStorage.setItem('userRole', arg);
-      // Force role update without page reload
-      setProfile({ id: 'dev-user', role: arg });
-      return;
-    }
-    const { email, password } = arg;
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    // profile will be fetched via onAuthStateChange
-  };
-
-  const logout = async () => {
+  const signOut = async () => {
     await supabase.auth.signOut();
-    localStorage.removeItem('userRole');
-    setProfile(null);
-    setSession(null);
+    setUser(null);
+    setRole(null);
   };
 
-  return {
-    role,
-    isAuthenticated: !!session?.user || !!devRole,
-    user: session?.user ?? null,
-    profile,
-    loading,
-    login,
-    logout,
-  };
+  const value = { user, role, loading, signOut };
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  allowedRole: UserRole;
-  redirectTo: string;
-}
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  allowedRole,
-  redirectTo 
-}) => {
+export const ProtectedRoute = ({ children, allowedRole, redirectTo }: { children: React.ReactNode, allowedRole: UserRole, redirectTo: string }) => {
   const auth = useAuth();
+  const navigate = useNavigate();
 
+  // Se a autenticação ainda está carregando, não faça nada
   if (auth.loading) {
-    return <div>Loading...</div>;
+    return <div>Carregando...</div>; 
   }
-  
-  if (!auth.isAuthenticated) {
-    return <Navigate to="/login" replace />;
+
+  // Se a role não for a esperada, redirecione
+  if (auth.role !== allowedRole) {
+    navigate(redirectTo, { replace: true });
+    return null;
   }
-  
-  if (allowedRole && auth.role !== allowedRole) {
-    // Prevent circular redirects by checking the current path
-    const currentPath = window.location.pathname;
-    if (currentPath !== redirectTo && currentPath !== '/login') {
-      return <Navigate to={redirectTo} replace />;
-    }
-    // If we're already on the redirect path or login, show access denied instead
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Acesso Negado</h1>
-          <p className="text-gray-600 mb-4">Você não tem permissão para acessar esta página.</p>
-          <Navigate to="/login" replace />
-        </div>
-      </div>
-    );
-  }
-  
+
   return <>{children}</>;
 };
-
-export { useAuth };
-export type { UserRole };

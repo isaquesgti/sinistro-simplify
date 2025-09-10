@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -22,13 +21,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { useAuth, type UserRole } from '@/components/AccessControl';
-import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent 
-} from '@/components/ui/chart';
-import { 
+import { useAuth } from '@/components/AccessControl';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import {
   BarChart, 
   Bar, 
   XAxis, 
@@ -42,44 +38,18 @@ import {
   Cell
 } from 'recharts';
 
-// Mock data
-const mockClaims = [
-  {
-    id: "SIN-2023-0001",
-    title: "Sinistro Automóvel - Colisão",
-    date: "15/05/2023",
-    clientName: "João Silva",
-    status: "in_progress" as const,
-    description: "Colisão traseira na Av. Paulista, envolvendo dois veículos. Danos moderados no para-choque e porta traseira."
-  },
-  {
-    id: "SIN-2023-0002",
-    title: "Sinistro Residencial - Alagamento",
-    date: "03/06/2023",
-    clientName: "Maria Oliveira",
-    status: "completed" as const,
-    description: "Alagamento no apartamento devido a um vazamento no encanamento do vizinho de cima. Danos em móveis e no piso."
-  },
-  {
-    id: "SIN-2023-0003",
-    title: "Sinistro Saúde - Cirurgia",
-    date: "22/07/2023",
-    clientName: "Carlos Mendes",
-    status: "pending" as const,
-    description: "Solicitação de reembolso para cirurgia de emergência realizada no Hospital São Luiz."
-  },
-  {
-    id: "SIN-2023-0004",
-    title: "Sinistro Automóvel - Furto",
-    date: "10/08/2023",
-    clientName: "Ana Pereira",
-    status: "rejected" as const,
-    description: "Furto de veículo no estacionamento do Shopping Morumbi. O veículo não foi recuperado."
-  }
-];
+type DbClaim = {
+  id: string;
+  title: string;
+  client_id: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'rejected';
+  created_at: string;
+  description: string;
+  client_name: string;
+};
 
 // Generate chart data
-const generateChartData = (claims) => {
+const generateChartData = (claims: DbClaim[]) => {
   const statusCounts = claims.reduce((acc, claim) => {
     acc[claim.status] = (acc[claim.status] || 0) + 1;
     return acc;
@@ -110,38 +80,82 @@ const getStatusBadge = (status: string) => {
 
 const InsurerDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [claims, setClaims] = useState(mockClaims);
   const { toast } = useToast();
   const auth = useAuth();
   
+  const { data: claims = [], isLoading, refetch } = useQuery<DbClaim[]>({
+    queryKey: ['claims', 'insurer', auth.user?.id],
+    queryFn: async () => {
+      if (!auth.user?.id) return [];
+      const { data, error } = await supabase
+        .from('claims')
+        .select(`
+          id,
+          title,
+          description,
+          status,
+          created_at,
+          clients:client_id (
+            full_name
+          )
+        `)
+        .eq('insurer_id', auth.user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      return data.map(claim => ({
+        ...claim,
+        client_name: claim.clients.full_name
+      })) as DbClaim[];
+    },
+    enabled: !!auth.user?.id,
+  });
+
   const filteredClaims = claims.filter(claim => 
     claim.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     claim.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    claim.clientName.toLowerCase().includes(searchTerm.toLowerCase())
+    claim.client_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const chartData = generateChartData(claims);
+  
+  const updateClaimStatus = async (id: string, newStatus: 'pending' | 'in_progress' | 'completed' | 'rejected') => {
+    try {
+      const { error } = await supabase
+        .from('claims')
+        .update({ status: newStatus })
+        .eq('id', id);
 
-  const updateClaimStatus = (id: string, newStatus: 'pending' | 'in_progress' | 'completed' | 'rejected') => {
-    setClaims(prevClaims => 
-      prevClaims.map(claim => 
-        claim.id === id ? { ...claim, status: newStatus } : claim
-      )
-    );
-    
-    // Status message mapping
-    const statusMessages = {
-      pending: 'O sinistro foi marcado como pendente',
-      in_progress: 'O sinistro está em análise',
-      completed: 'O sinistro foi aprovado e concluído',
-      rejected: 'O sinistro foi negado'
-    };
-    
-    toast({
-      title: "Status atualizado",
-      description: statusMessages[newStatus],
-    });
+      if (error) throw error;
+      
+      toast({
+        title: "Status atualizado",
+        description: `O status do sinistro foi alterado para: ${newStatus}`,
+      });
+      
+      refetch(); // Recarregar os dados para refletir a mudança
+      
+    } catch (error) {
+      console.error('Error updating claim status:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status do sinistro.",
+        variant: "destructive"
+      });
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -157,24 +171,6 @@ const InsurerDashboard = () => {
                 Gerencie sinistros e atendimentos aos clientes
               </p>
             </div>
-            <div className="flex space-x-2 mt-4 md:mt-0">
-              <Button 
-                variant="outline" 
-                className="border-insurance-primary text-insurance-primary hover:bg-insurance-primary/5"
-                onClick={() => auth.login('client' as UserRole)}
-              >
-                <User className="w-4 h-4 mr-2" />
-                Ver como Cliente
-              </Button>
-              <Button 
-                variant="outline" 
-                className="border-red-500 text-red-500 hover:bg-red-500/5"
-                onClick={() => auth.logout()}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sair
-              </Button>
-            </div>
           </div>
           
           <div className="bg-white shadow-sm rounded-lg p-6 mb-8">
@@ -183,12 +179,6 @@ const InsurerDashboard = () => {
                 <FileCheck className="w-5 h-5 mr-2 text-insurance-secondary" />
                 Gerenciamento de Sinistros
               </h2>
-              <div className="mt-4 md:mt-0 flex items-center">
-                <Badge className="mr-4 bg-gray-200 text-gray-800 hover:bg-gray-300">
-                  <UserCog className="w-4 h-4 mr-1" />
-                  Analista de Sinistros
-                </Badge>
-              </div>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -234,9 +224,9 @@ const InsurerDashboard = () => {
                       filteredClaims.map(claim => (
                         <TableRow key={claim.id}>
                           <TableCell className="font-medium">{claim.id}</TableCell>
-                          <TableCell>{claim.clientName}</TableCell>
+                          <TableCell>{claim.client_name}</TableCell>
                           <TableCell className="max-w-xs truncate">{claim.title}</TableCell>
-                          <TableCell>{claim.date}</TableCell>
+                          <TableCell>{new Date(claim.created_at).toLocaleDateString('pt-BR')}</TableCell>
                           <TableCell>{getStatusBadge(claim.status)}</TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
@@ -298,7 +288,6 @@ const InsurerDashboard = () => {
                 </Table>
               </TabsContent>
               
-              {/* Similar content for other tabs, filter by status */}
               <TabsContent value="pending" className="mt-0">
                 <Table>
                   <TableHeader>
@@ -318,9 +307,9 @@ const InsurerDashboard = () => {
                         .map(claim => (
                           <TableRow key={claim.id}>
                             <TableCell className="font-medium">{claim.id}</TableCell>
-                            <TableCell>{claim.clientName}</TableCell>
+                            <TableCell>{claim.client_name}</TableCell>
                             <TableCell className="max-w-xs truncate">{claim.title}</TableCell>
-                            <TableCell>{claim.date}</TableCell>
+                            <TableCell>{new Date(claim.created_at).toLocaleDateString('pt-BR')}</TableCell>
                             <TableCell>{getStatusBadge(claim.status)}</TableCell>
                             <TableCell>
                               <div className="flex space-x-2">
@@ -379,11 +368,9 @@ const InsurerDashboard = () => {
                 </Table>
               </TabsContent>
 
-              {/* Similar content for the other tabs (in_progress, completed, rejected) */}
             </Tabs>
           </div>
 
-          {/* Chart Section */}
           <div className="bg-white shadow-sm rounded-lg p-6">
             <h2 className="text-xl font-semibold text-insurance-primary mb-6">
               Análise de Sinistros por Status
