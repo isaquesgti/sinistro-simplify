@@ -143,6 +143,16 @@ const Login = () => {
                     <Button type="submit" className="w-full" disabled={isLoading}>
                       {isLoading ? 'Processando...' : 'Entrar'}
                     </Button>
+                    
+                    {/* Botão de teste para cliente */}
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="w-full mt-2" 
+                      onClick={() => auth.login('client')}
+                    >
+                      Cliente (Teste)
+                    </Button>
                   </form>
                 </TabsContent>
                 
@@ -181,6 +191,16 @@ const Login = () => {
                     </div>
                     <Button type="submit" className="w-full" disabled={isLoading}>
                       {isLoading ? 'Processando...' : 'Entrar'}
+                    </Button>
+                    
+                    {/* Botão de teste para seguradora */}
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="w-full mt-2" 
+                      onClick={() => auth.login('insurer')}
+                    >
+                      Seguradora (Teste)
                     </Button>
                   </form>
                 </TabsContent>

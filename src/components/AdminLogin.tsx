@@ -52,6 +52,32 @@ const AdminLogin = () => {
     auth.login('admin');
   };
 
+  const handleTestLogin = async () => {
+    try {
+      // Simular login com dados de teste
+      const mockUser = {
+        id: 'test-admin-id',
+        email: 'admin@teste.com',
+        user_metadata: { full_name: 'Admin Teste' }
+      };
+      
+      // Simular login bem-sucedido
+      setUser(mockUser);
+      setRole('admin');
+      
+      toast({
+        title: "Login realizado",
+        description: "Login de teste realizado com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro de login",
+        description: "Erro ao fazer login de teste.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
@@ -96,10 +122,18 @@ const AdminLogin = () => {
           <Button 
             type="button" 
             variant="outline" 
-            className="w-full" 
+            className="w-full mb-2" 
             onClick={handleDevLogin}
           >
             Admin (Desenvolvimento)
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="w-full" 
+            onClick={handleTestLogin}
+          >
+            Admin (Teste Local)
           </Button>
         </div>
 

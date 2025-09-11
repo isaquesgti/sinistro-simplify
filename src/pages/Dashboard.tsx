@@ -13,7 +13,6 @@ import {
   User,
   FileText,
   Clock,
-  Shield, 
   LogOut 
 } from 'lucide-react';
 import ClaimCard from '@/components/ClaimCard';
@@ -81,16 +80,8 @@ const Dashboard = () => {
             <div className="flex space-x-2 mt-4 md:mt-0">
               <Button 
                 variant="outline" 
-                className="border-insurance-primary text-insurance-primary hover:bg-insurance-primary/5"
-                onClick={() => auth.login('insurer' as UserRole)}
-              >
-                <Shield className="w-4 h-4 mr-2" />
-                Ver como Seguradora
-              </Button>
-              <Button 
-                variant="outline" 
                 className="border-red-500 text-red-500 hover:bg-red-500/5"
-                onClick={() => auth.logout()}
+                onClick={() => auth.signOut()}
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sair

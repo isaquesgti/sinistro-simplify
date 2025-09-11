@@ -123,7 +123,7 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = async () => {
-    await auth.logout();
+    await auth.signOut();
     navigate('/');
   };
 
