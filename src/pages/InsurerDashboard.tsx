@@ -19,11 +19,13 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/components/AccessControl';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import InsurerClientManager from '@/components/InsurerClientManager';
 import {
   BarChart, 
   Bar, 
@@ -80,6 +82,7 @@ const getStatusBadge = (status: string) => {
 
 const InsurerDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('claims');
   const { toast } = useToast();
   const auth = useAuth();
   
@@ -171,15 +174,33 @@ const InsurerDashboard = () => {
                 Gerencie sinistros e atendimentos aos clientes
               </p>
             </div>
+            <div className="flex space-x-2 mt-4 md:mt-0">
+              <Button 
+                variant="outline" 
+                className="border-red-500 text-red-500 hover:bg-red-500/5"
+                onClick={() => auth.signOut()}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </Button>
+            </div>
           </div>
           
-          <div className="bg-white shadow-sm rounded-lg p-6 mb-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-              <h2 className="text-xl font-semibold text-insurance-primary flex items-center">
-                <FileCheck className="w-5 h-5 mr-2 text-insurance-secondary" />
-                Gerenciamento de Sinistros
-              </h2>
-            </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="claims">Sinistros</TabsTrigger>
+              <TabsTrigger value="clients">Clientes</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="claims" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileCheck className="w-5 h-5 mr-2 text-insurance-secondary" />
+                    Gerenciamento de Sinistros
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <div className="relative flex-grow">
@@ -368,57 +389,66 @@ const InsurerDashboard = () => {
                 </Table>
               </TabsContent>
 
-            </Tabs>
-          </div>
+                </Tabs>
+                </CardContent>
+              </Card>
 
-          <div className="bg-white shadow-sm rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-insurance-primary mb-6">
-              Análise de Sinistros por Status
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={chartData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="value" name="Quantidade" fill="#3B82F6">
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value, name) => [`${value} sinistros`, name]} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Análise de Sinistros por Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={chartData}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="value" name="Quantidade" fill="#3B82F6">
+                            {chartData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={chartData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={true}
+                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {chartData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value, name) => [`${value} sinistros`, name]} />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="clients" className="space-y-4">
+              <InsurerClientManager />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
       <Footer />

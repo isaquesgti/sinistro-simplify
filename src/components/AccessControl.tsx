@@ -60,6 +60,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       };
       setUser(mockUser);
       setRole(credentials);
+      
+      // Redirecionar baseado no role
+      setTimeout(() => {
+        if (credentials === 'admin') {
+          window.location.href = '/admin/dashboard';
+        } else if (credentials === 'insurer') {
+          window.location.href = '/insurer/dashboard';
+        } else {
+          window.location.href = '/dashboard';
+        }
+      }, 100);
       return;
     }
 
@@ -86,6 +97,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       setUser(data.user);
       setRole(userRole);
+      
+      // Redirecionar baseado no role
+      setTimeout(() => {
+        if (userRole === 'admin') {
+          window.location.href = '/admin/dashboard';
+        } else if (userRole === 'insurer') {
+          window.location.href = '/insurer/dashboard';
+        } else {
+          window.location.href = '/dashboard';
+        }
+      }, 100);
     }
   };
 

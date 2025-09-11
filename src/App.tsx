@@ -31,23 +31,23 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={
-              <ProtectedRoute allowedRole="client" redirectTo="/insurer">
+              <ProtectedRoute allowedRole="client" redirectTo="/login">
                 <Dashboard />
               </ProtectedRoute>
             } />
-            <Route path="/insurer" element={
-              <ProtectedRoute allowedRole="insurer" redirectTo="/dashboard">
+            <Route path="/insurer/dashboard" element={
+              <ProtectedRoute allowedRole="insurer" redirectTo="/login">
                 <InsurerDashboard />
               </ProtectedRoute>
             } />
-            <Route path="/admin" element={
-              <ProtectedRoute allowedRole="admin" redirectTo="/dashboard">
+            <Route path="/admin/dashboard" element={
+              <ProtectedRoute allowedRole="admin" redirectTo="/login">
                 <AdminDashboard />
               </ProtectedRoute>
             } />
             <Route path="/claim/:id" element={<ClaimDetails />} />
             <Route path="/insurer/claim/:id" element={
-              <ProtectedRoute allowedRole="insurer" redirectTo="/dashboard">
+              <ProtectedRoute allowedRole="insurer" redirectTo="/login">
                 <InsurerClaimDetails />
               </ProtectedRoute>
             } />
